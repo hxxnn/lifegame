@@ -60,3 +60,18 @@ describe('swapQuest', () => {
     expect(swapQuest(s, today, 'str-1-0', tiny, mulberry32(1))).toBe(s);
   });
 });
+
+describe('swap history', () => {
+  it('never swaps a quest back in after it was swapped out the same day', () => {
+    for (let seed = 0; seed < 200; seed++) {
+      let s = state(['str-1-0', 'int-1-0']);
+      s = swapQuest(s, today, 'str-1-0', pool, mulberry32(seed));
+      const first = s.weeks[0].days.at(-1)!.quests[0].questId;
+      expect(s.weeks[0].days.at(-1)!.swappedOut).toEqual(['str-1-0']);
+      const again = swapQuest(s, today, first, pool, mulberry32(seed + 1000));
+      const second = again.weeks[0].days.at(-1)!.quests[0].questId;
+      expect(second).not.toBe('str-1-0');
+      expect(second).not.toBe(first);
+    }
+  });
+});

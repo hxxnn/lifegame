@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createLocalAdapter, createMemoryAdapter } from '../../src/storage/adapter';
 import { migrate } from '../../src/storage/migrate';
-import { exportJson, importJson } from '../../src/storage/backup';
+import { exportJson, importJson, withBackupMark } from '../../src/storage/backup';
+import { parseExternalSave } from '../../src/storage/adapter';
 import { emptyState, type PlayerState } from '../../src/domain/types';
 
 class FakeStorage implements Storage {
@@ -115,5 +116,37 @@ describe('migrate / export / import', () => {
   it('import rejects junk with INVALID_SAVE', () => {
     for (const bad of ['{}', '[]', 'hello', JSON.stringify({ ...sample(), version: 9 })])
       expect(() => importJson(bad)).toThrow('INVALID_SAVE');
+  });
+});
+
+describe('v2 follow-ups', () => {
+  it('withBackupMark stamps the export so a restored file does not nag again', () => {
+    const out = withBackupMark(sample(), '2026-11-20');
+    expect(out.backup).toEqual({ lastAt: '2026-11-20', nudgedAt: '2026-11-20' });
+    expect(importJson(exportJson(out)).backup.lastAt).toBe('2026-11-20');
+    expect(sample().backup.lastAt).toBeNull(); // input untouched
+  });
+  it('a v1 upgrade with history does not replay last week\'s report', () => {
+    const { settings, backup, reportSeenWeek, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek;
+    const w = rest.weeks[0];
+    const two = [{ ...w, weekId: '2026-11-02' }, { ...w, weekId: '2026-11-09' }];
+    expect(migrate({ ...rest, version: 1, weeks: two })!.reportSeenWeek).toBe('2026-11-02');
+    expect(migrate({ ...rest, version: 1, weeks: [w] })!.reportSeenWeek).toBeNull();
+  });
+  it('swappedOut must be a list of ids', () => {
+    const s = sample();
+    s.weeks[0].days[0].swappedOut = ['str-01'];
+    expect(migrate(s)).not.toBeNull();
+    (s.weeks[0].days[0] as unknown as { swappedOut: unknown }).swappedOut = [1];
+    expect(migrate(s)).toBeNull();
+  });
+  it('parseExternalSave only accepts valid v2 data written by another tab', () => {
+    expect(parseExternalSave(JSON.stringify(sample()))).toEqual(sample());
+    const { settings, backup, reportSeenWeek, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek;
+    expect(parseExternalSave(JSON.stringify({ ...rest, version: 1 }))).toBeNull(); // an old tab wrote it: ignore
+    expect(parseExternalSave('{broken')).toBeNull();
+    expect(parseExternalSave(null)).toBeNull();
   });
 });

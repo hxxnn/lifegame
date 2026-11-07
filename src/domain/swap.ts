@@ -16,7 +16,7 @@ function find(state: PlayerState, date: string, questId: string, pool: QuestDef[
   if ((day.swaps ?? 0) >= BALANCE.dailySwaps) return null;
 
   const levels = statLevels(state);
-  const used = new Set(day.quests.map((q) => q.questId));
+  const used = new Set([...day.quests.map((q) => q.questId), ...(day.swappedOut ?? [])]); // 오늘 바꿔 낸 퀘스트도 다시 나오지 않게
   const all = state.weeks.flatMap((w) => w.days);
   const prevDay = all[all.indexOf(day) - 1];
   const prev = new Set(prevDay?.quests.map((q) => q.questId) ?? []);
@@ -42,6 +42,7 @@ export function swapQuest(state: PlayerState, date: string, questId: string, poo
         di !== f.dayIdx ? d : {
           ...d,
           swaps: (d.swaps ?? 0) + 1,
+          swappedOut: [...(d.swappedOut ?? []), questId],
           quests: d.quests.map((q, qi) => (qi === f.qIdx ? { questId: pick.id, done: false } : q)),
         }),
     });

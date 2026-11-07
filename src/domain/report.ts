@@ -10,6 +10,7 @@ export interface WeekReport {
   clearRate: number;
   fullDays: number;
   weeklyBonus: boolean;
+  bonusXp: number;
   xpByStat: Record<StatId, number>;
 }
 export interface PendingReport extends WeekReport { nextTheme: ThemeId; reason: string }
@@ -31,7 +32,7 @@ export function buildWeekReport(state: PlayerState, weekId: string, pool: QuestD
       xpByStat[def.stat] += xp + (day.allDoneBonus ? Math.round(xp * BALANCE.dayBonusRate) : 0);
     }
   }
-  return { weekId, theme: week.theme, done, total, clearRate: week.clearRate ?? (total ? done / total : 0), fullDays, weeklyBonus: week.weeklyBonus, xpByStat };
+  return { weekId, theme: week.theme, done, total, clearRate: week.clearRate ?? (total ? done / total : 0), fullDays, weeklyBonus: week.weeklyBonus, bonusXp: week.weeklyBonus ? BALANCE.weeklyBonusXp : 0, xpByStat };
 }
 
 export function themeReason(prevClearRate: number | null): string {

@@ -16,7 +16,7 @@ export interface QuestDef {
   requires?: { stat: StatId; level: number };
 }
 export interface QuestInstance { questId: string; done: boolean }
-export interface DayRecord { date: string; quests: QuestInstance[]; allDoneBonus: boolean; swaps?: number }
+export interface DayRecord { date: string; quests: QuestInstance[]; allDoneBonus: boolean; swaps?: number; swappedOut?: string[] }
 export interface WeekRecord {
   weekId: string;
   theme: ThemeId;

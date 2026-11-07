@@ -25,6 +25,8 @@ describe('weekly report', () => {
     // challenge x1.6: s=32, i=16. day1 both done (+10% bonus: 3 and 2), day2 only s=32
     expect(r.xpByStat.str).toBe(32 + 3 + 32);
     expect(r.xpByStat.int).toBe(16 + 2);
+    expect(r.bonusXp).toBe(100);
+    expect(buildWeekReport(twoWeeks(), '2026-11-09', pool)!.bonusXp).toBe(0);
     expect(buildWeekReport(twoWeeks(), '1999-01-04', pool)).toBeNull();
   });
   it('themeReason explains the odds shift', () => {

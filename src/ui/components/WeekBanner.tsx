@@ -8,8 +8,8 @@ export function WeekBanner({ week }: { week: WeekRecord }) {
   return (
     <details className="surface week">
       <summary>
-        <span><span aria-hidden="true">{info.icon}</span> {info.name}</span>
-        <span className="muted">경험치 ×{BALANCE.themeMultiplier[week.theme]}</span>
+        <span role="heading" aria-level={2}><span aria-hidden="true">{info.icon}</span> {info.name}</span>
+        <span className="muted">경험치 ×{BALANCE.themeMultiplier[week.theme]}, 완료한 날 {fullDays}/{BALANCE.weeklyBonusDays}</span>
       </summary>
       <p className="muted">{info.blurb}</p>
       <p className="muted">전부 완료한 날 {fullDays}일. 주 5일 이상이면 주간 보너스를 받아요{week.weeklyBonus ? ' (획득!)' : ''}.</p>

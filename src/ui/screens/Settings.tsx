@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { PlayerState } from '../../domain/types';
-import { exportJson, importJson } from '../../storage/backup';
-import { downloadBlob } from '../download';
+import { exportJson, importJson, withBackupMark } from '../../storage/backup';
+import { saveBackup } from '../download';
 import type { Action } from '../store';
 
 export function Settings({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
@@ -9,10 +9,10 @@ export function Settings({ state, todayKey, dispatch }: { state: PlayerState; to
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => setNick(state.nickname), [state.nickname]);
 
-  const download = () => {
-    downloadBlob(new Blob([exportJson(state)], { type: 'application/json' }), `lifegame-save-${todayKey}.json`);
-    dispatch({ type: 'markBackup', date: todayKey });
-    setMsg('백업 파일을 저장했어요.');
+  const download = async () => {
+    const saved = await saveBackup(exportJson(withBackupMark(state, todayKey)), `lifegame-save-${todayKey}.json`);
+    if (saved) dispatch({ type: 'markBackup', date: todayKey });
+    setMsg(saved ? '백업 파일을 저장했어요.' : '저장을 취소했어요. 백업은 기록되지 않았어요.');
   };
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -45,7 +45,7 @@ export function Settings({ state, todayKey, dispatch }: { state: PlayerState; to
         <p className="muted">진행 상황은 이 브라우저에만 저장돼요. 기기를 바꾸기 전에 꼭 내보내기로 백업하세요.</p>
         <p className="muted">마지막 백업: {state.backup.lastAt ?? '아직 없어요'}</p>
         <div className="row">
-          <button className="btn" onClick={download}>내보내기</button>
+          <button className="btn" onClick={() => void download()}>내보내기</button>
           <label className="btn ghost">
             가져오기
             <input type="file" accept="application/json,.json" hidden onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />

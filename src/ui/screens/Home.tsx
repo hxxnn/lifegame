@@ -6,13 +6,13 @@ import { backupNudge, pendingReport, yesterdaySummary } from '../../domain/repor
 import { pickDisplayDay } from '../../domain/rollover';
 import { canSwap } from '../../domain/swap';
 import { STAT_IDS, type PlayerState } from '../../domain/types';
-import { exportJson } from '../../storage/backup';
+import { exportJson, withBackupMark } from '../../storage/backup';
 import { CharacterAvatar } from '../components/CharacterAvatar';
 import { QuestCard } from '../components/QuestCard';
 import { ReportCard } from '../components/ReportCard';
 import { StatBar } from '../components/StatBar';
 import { WeekBanner } from '../components/WeekBanner';
-import { downloadBlob } from '../download';
+import { saveBackup } from '../download';
 import type { Action } from '../store';
 
 export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
@@ -43,9 +43,9 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
   const yesterday = yesterdaySummary(state, day.date);
   const title = latestTitle(state.unlockedIds);
 
-  const backupNow = () => {
-    downloadBlob(new Blob([exportJson(state)], { type: 'application/json' }), `lifegame-save-${todayKey}.json`);
-    dispatch({ type: 'markBackup', date: todayKey });
+  const backupNow = async () => {
+    const saved = await saveBackup(exportJson(withBackupMark(state, todayKey)), `lifegame-save-${todayKey}.json`);
+    if (saved) dispatch({ type: 'markBackup', date: todayKey });
   };
 
   return (
@@ -57,12 +57,12 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
           <p className="muted">{title ? `${COSMETIC_LABELS[title]}, ` : ''}누적 클리어 {state.totalCleared}개{yesterday ? `, 어제 ${yesterday.done}/${yesterday.total}` : ''}</p>
         </div>
       </section>
-      {report && <ReportCard report={report} onClose={() => dispatch({ type: 'dismissReport' })} />}
+      {report && <ReportCard report={report} onClose={() => dispatch({ type: 'dismissReport', weekId: report.weekId })} />}
       {nudge && (
         <div className="banner" role="status">
           <p><strong>{nudge.days === null ? '아직 백업한 적이 없어요.' : `백업한 지 ${nudge.days}일 지났어요.`}</strong> 브라우저 데이터가 지워지면 진행 상황도 사라져요.</p>
           <div className="row">
-            <button className="btn small" onClick={backupNow}>지금 백업하기</button>
+            <button className="btn small" onClick={() => void backupNow()}>지금 백업하기</button>
             <button className="btn ghost small" onClick={() => dispatch({ type: 'snoozeBackup', date: todayKey })}>나중에</button>
           </div>
         </div>

@@ -35,6 +35,7 @@ async function second(browser: Browser, when: Date) {
 test('onboarding gives 5 weekday quests; checking persists across reload', async ({ page }) => {
   await start(page, WED);
   await expect(page.locator('.quest')).toHaveCount(5);
+  await expect(page.getByRole('heading', { name: /(평온한|보통의|도전의|지옥의) 주$/ })).toBeVisible();
   await expect(page.getByTestId('today-progress')).toHaveText('0/5');
   await complete(page);
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
@@ -95,6 +96,7 @@ test('share link opens a side-by-side comparison; broken links show an error', a
 });
 
 test('export, reset, import restores progress', async ({ page }) => {
+  await page.addInitScript(() => { (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker = undefined; });
   await start(page, WED);
   await complete(page);
   await page.getByRole('button', { name: '설정' }).click();
@@ -197,4 +199,36 @@ test('gallery teases only the next reward and the share tab previews the card', 
   await expect(page.getByText('장비 ???').first()).toBeVisible();
   await page.getByRole('button', { name: '공유' }).click();
   await expect(page.getByRole('img', { name: '공유 카드 미리보기' })).toBeVisible();
+});
+
+
+test('cancelling the save dialog does not record a backup', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as { showSaveFilePicker: unknown }).showSaveFilePicker = async () => { throw new DOMException('cancel', 'AbortError'); };
+  });
+  await start(page, WED);
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: '내보내기' }).click();
+  await expect(page.getByText('저장을 취소했어요')).toBeVisible();
+  await expect(page.getByText('마지막 백업: 아직 없어요')).toBeVisible();
+});
+
+test('two tabs stay in sync and an old-version tab cannot overwrite the save', async ({ page }) => {
+  await start(page, WED);
+  const other = await page.context().newPage();
+  await other.clock.install({ time: WED });
+  await other.goto('/');
+  await expect(other.getByTestId('today-progress')).toHaveText('0/5');
+  await complete(page);
+  await expect(other.getByTestId('today-progress')).toHaveText('1/5'); // no reload needed
+  // an old v1 build in another tab writes a v1 shaped save
+  await other.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('lifegame:v1')!);
+    s.version = 1;
+    delete s.settings; delete s.backup; delete s.reportSeenWeek;
+    localStorage.setItem('lifegame:v1', JSON.stringify(s));
+  });
+  await expect.poll(() => other.evaluate(() => JSON.parse(localStorage.getItem('lifegame:v1')!).version)).toBe(2);
+  await expect(page.getByTestId('today-progress')).toHaveText('1/5');
+  await other.close();
 });

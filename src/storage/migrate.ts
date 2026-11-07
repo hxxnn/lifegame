@@ -8,12 +8,19 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const isDate = (v: unknown): v is string => typeof v === 'string' && DATE.test(v);
 const isNonNegInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
+/** v1 -> v2: 지난주 결산이 업그레이드 직후 갑자기 뜨지 않도록 직전 주를 '본 것'으로 처리한다. */
+function previousWeekId(weeks: unknown): string | null {
+  if (!Array.isArray(weeks) || weeks.length < 2) return null;
+  const prev = weeks[weeks.length - 2] as { weekId?: unknown } | null;
+  return prev && typeof prev.weekId === 'string' ? prev.weekId : null;
+}
+
 /** Validates untrusted data and returns a PlayerState, or null when it is not a valid v1 save. */
 export function migrate(input: unknown): PlayerState | null {
   if (!isObj(input) || (input.version !== 1 && input.version !== 2)) return null;
   // v1 -> v2: add the new fields with defaults
   const raw: Record<string, unknown> = input.version === 1
-    ? { ...input, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: null }
+    ? { ...input, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: previousWeekId(input.weeks) }
     : input;
   if (!isObj(raw.settings) || !Number.isInteger(raw.settings.dayStartHour) || (raw.settings.dayStartHour as number) < 0 || (raw.settings.dayStartHour as number) > 6) return null;
   if (!isObj(raw.backup) || (raw.backup.lastAt !== null && !isDate(raw.backup.lastAt)) || (raw.backup.nudgedAt !== null && !isDate(raw.backup.nudgedAt))) return null;
@@ -42,6 +49,7 @@ export function migrate(input: unknown): PlayerState | null {
       if (!isObj(d) || !isDate(d.date) || typeof d.allDoneBonus !== 'boolean' || !Array.isArray(d.quests)) return null;
       if (!d.quests.every((q) => isObj(q) && isStr(q.questId) && typeof q.done === 'boolean')) return null;
       if (d.swaps !== undefined && !isNonNegInt(d.swaps)) return null;
+      if (d.swappedOut !== undefined && !(Array.isArray(d.swappedOut) && d.swappedOut.every(isStr))) return null;
     }
   }
   return raw as unknown as PlayerState;

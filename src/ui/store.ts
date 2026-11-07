@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { CHARACTERS } from '../data/characters';
 import { COSMETIC_SEQUENCE } from '../data/cosmetics';
 import { QUEST_POOL } from '../data/questPool';
@@ -10,7 +10,7 @@ import { swapQuest } from '../domain/swap';
 import { completeAndUnlock } from '../domain/unlocks';
 import { STAT_IDS, emptyState, type PlayerState, type StatId } from '../domain/types';
 import { stripNick } from '../share/codec';
-import { createLocalAdapter } from '../storage/adapter';
+import { STORAGE_KEY, createLocalAdapter, parseExternalSave } from '../storage/adapter';
 
 export type Action =
   | { type: 'init'; now: Date }
@@ -20,7 +20,7 @@ export type Action =
   | { type: 'setNickname'; nickname: string }
   | { type: 'import'; state: PlayerState; now: Date }
   | { type: 'swap'; date: string; questId: string }
-  | { type: 'dismissReport' }
+  | { type: 'dismissReport'; weekId: string }
   | { type: 'markBackup'; date: string }
   | { type: 'snoozeBackup'; date: string }
   | { type: 'setDayStart'; hour: number }
@@ -60,7 +60,8 @@ export function reducer(state: PlayerState, action: Action): PlayerState {
           { date: today, theme: week.theme, focus: action.focus, levels: statLevels(next), pool: QUEST_POOL, previousIds: prev?.quests.map((q) => q.questId) ?? [] },
           Math.random,
         );
-        next = { ...next, weeks: next.weeks.map((w) => (w === week ? { ...w, days: [...w.days.slice(0, -1), fresh] } : w)) };
+        const kept = { ...fresh, ...(day.swaps !== undefined ? { swaps: day.swaps } : {}), ...(day.swappedOut ? { swappedOut: day.swappedOut } : {}) };
+        next = { ...next, weeks: next.weeks.map((w) => (w === week ? { ...w, days: [...w.days.slice(0, -1), kept] } : w)) };
       }
       return next;
     }
@@ -70,10 +71,8 @@ export function reducer(state: PlayerState, action: Action): PlayerState {
       return syncState(action.state, action.now, QUEST_POOL, Math.random);
     case 'swap':
       return swapQuest(state, action.date, action.questId, QUEST_POOL, Math.random);
-    case 'dismissReport': {
-      const prev = state.weeks.at(-2);
-      return prev ? { ...state, reportSeenWeek: prev.weekId } : state;
-    }
+    case 'dismissReport':
+      return { ...state, reportSeenWeek: action.weekId };
     case 'markBackup':
       return { ...state, backup: { lastAt: action.date, nudgedAt: action.date } };
     case 'snoozeBackup':
@@ -92,6 +91,20 @@ export function useGame() {
   const [state, dispatch] = useReducer(reducer, loaded.state ?? emptyState());
   const [storageOk, setStorageOk] = useState(true);
   const [now, setNow] = useState(() => new Date());
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // 다른 탭이 저장하면 그 내용을 받아 온다. 이전 버전 탭이 덮어쓴 데이터는 무시하고 내 상태를 다시 저장한다.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return;
+      const incoming = parseExternalSave(e.newValue);
+      if (incoming) dispatch({ type: 'import', state: incoming, now: new Date() });
+      else adapter.save(stateRef.current);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [adapter]);
 
   useEffect(() => {
     const tick = () => setNow(new Date());

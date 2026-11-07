@@ -85,7 +85,7 @@ describe('v2 actions', () => {
     let s = started(new Date(2026, 10, 8, 12)); // Sunday
     s = reducer(s, { type: 'init', now: new Date(2026, 10, 9, 12) }); // Monday
     expect(pendingReport(s, QUEST_POOL)).not.toBeNull();
-    s = reducer(s, { type: 'dismissReport' });
+    s = reducer(s, { type: 'dismissReport', weekId: '2026-11-02' });
     expect(s.reportSeenWeek).toBe('2026-11-02');
     expect(pendingReport(s, QUEST_POOL)).toBeNull();
   });
@@ -106,5 +106,24 @@ describe('v2 actions', () => {
     expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: early })).toBe(s);
     const later = new Date(2026, 10, 9, 5, 0);
     expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: later }).characterId).toBe('shade');
+  });
+});
+
+describe('v2 follow-up actions', () => {
+  it('dismissReport marks the week shown on the card, even if a newer week exists by now', () => {
+    let s = started(new Date(2026, 10, 1, 12));
+    s = reducer(s, { type: 'init', now: new Date(2026, 10, 9, 12) });
+    s = reducer(s, { type: 'init', now: new Date(2026, 10, 16, 12) });
+    expect(reducer(s, { type: 'dismissReport', weekId: '2026-11-02' }).reportSeenWeek).toBe('2026-11-02');
+  });
+  it('a Monday profile change keeps the swap counter and history of today', () => {
+    let s = started(mon);
+    const target = s.weeks[0].days[0].quests.find((q) => !QUEST_BY_ID[q.questId].fixed)!.questId;
+    s = reducer(s, { type: 'swap', date: '2026-11-09', questId: target });
+    const before = s.weeks[0].days[0];
+    const out = reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    const after = out.weeks[0].days[0];
+    expect(after.swaps).toBe(before.swaps);
+    expect(after.swappedOut).toEqual(before.swappedOut);
   });
 });

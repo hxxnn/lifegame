@@ -7,7 +7,7 @@ import { StatBar } from '../components/StatBar';
 import { canChangeProfile, isCharacterUnlocked, type Action } from '../store';
 
 export function Character({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
-  const current = CHARACTERS.find((c) => c.id === state.characterId)!;
+  const current = CHARACTERS.find((c) => c.id === state.characterId) ?? CHARACTERS[0];
   const editable = canChangeProfile(state, todayKey);
   const [characterId, setCharacterId] = useState(current.id);
   const [focus, setFocus] = useState<StatId[]>(state.focusStats ?? []);
@@ -17,7 +17,7 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
   return (
     <>
       <section className="card row">
-        <CharacterAvatar id={current.id} size={96} />
+        <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} />
         <div className="grow">
           <h1>{current.name}</h1>
           <p className="muted">{current.tagline}</p>

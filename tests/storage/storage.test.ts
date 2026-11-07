@@ -80,6 +80,20 @@ describe('migrate / export / import', () => {
     expect(migrate(null)).toBeNull();
     expect(migrate(sample())).toEqual(sample());
   });
+  it('nickname limit counts characters, not UTF-16 units (emoji nicknames survive a reload)', () => {
+    expect(migrate({ ...sample(), nickname: '😀'.repeat(20) })).not.toBeNull();
+    expect(migrate({ ...sample(), nickname: '😀'.repeat(21) })).toBeNull();
+  });
+  it('rejects saves that would break the UI', () => {
+    expect(migrate({ ...sample(), characterId: 'nope' })).toBeNull();
+    expect(migrate({ ...sample(), lastDate: 'zzz' })).toBeNull();
+    expect(migrate({ ...sample(), focusStats: null })).toBeNull();
+    expect(migrate({ ...sample(), characterId: null })).toBeNull();
+    const s = sample();
+    s.weeks[0].days[0].date = 'someday';
+    expect(migrate(s)).toBeNull();
+    expect(migrate({ ...emptyState() })).not.toBeNull();
+  });
   it('import(export(s)) equals s', () => {
     expect(importJson(exportJson(sample()))).toEqual(sample());
   });

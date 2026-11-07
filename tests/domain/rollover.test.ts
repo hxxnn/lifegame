@@ -63,3 +63,13 @@ describe('syncState', () => {
     expect(d2.filter((id) => d1.includes(id))).toEqual([]);
   });
 });
+
+import { pickDisplayDay } from '../../src/domain/rollover';
+describe('pickDisplayDay', () => {
+  it('returns today\'s record, or the latest one when the clock was corrected backwards', () => {
+    const s = syncState(ready(), at(2027, 1, 5), pool, mulberry32(1)); // clock was wrongly ahead
+    expect(pickDisplayDay(s, '2027-01-05')!.date).toBe('2027-01-05');
+    expect(pickDisplayDay(s, '2026-11-11')!.date).toBe('2027-01-05');
+    expect(pickDisplayDay(emptyState(), '2026-11-11')).toBeNull();
+  });
+});

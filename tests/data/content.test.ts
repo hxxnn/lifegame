@@ -60,3 +60,11 @@ describe('stories and cosmetics', () => {
     for (const id of COSMETIC_SEQUENCE) expect(COSMETIC_LABELS[id]?.length).toBeGreaterThan(0);
   });
 });
+
+import { equippedLook } from '../../src/data/cosmetics';
+describe('equippedLook', () => {
+  it('uses the most advanced unlocked background and every unlocked gear piece', () => {
+    expect(equippedLook([])).toEqual({ bg: null, gear: [] });
+    expect(equippedLook(['bg:meadow', 'bg:night', 'gear:cape', 'title:novice'])).toEqual({ bg: 'bg:night', gear: ['gear:cape'] });
+  });
+});

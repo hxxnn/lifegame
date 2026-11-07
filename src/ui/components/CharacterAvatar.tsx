@@ -1,4 +1,7 @@
 import { CHARACTERS, type CharacterShape } from '../../data/characters';
+import { equippedLook } from '../../data/cosmetics';
+
+const BG_COLORS: Record<string, string> = { 'bg:meadow': '#9bd37a', 'bg:night': '#262b6b', 'bg:castle': '#9a9cb5' };
 
 const SKIN = '#f2c9a0';
 
@@ -23,18 +26,22 @@ function Gear({ shape, a, b }: { shape: CharacterShape; a: string; b: string }) 
   }
 }
 
-export function CharacterAvatar({ id, size = 96 }: { id: string; size?: number }) {
+export function CharacterAvatar({ id, size = 96, unlockedIds = [] }: { id: string; size?: number; unlockedIds?: string[] }) {
+  const look = equippedLook(unlockedIds);
   const c = CHARACTERS.find((x) => x.id === id) ?? CHARACTERS[0];
   const [a, b] = c.palette;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={`${c.name} 캐릭터`}>
-      <circle cx="50" cy="50" r="48" fill={b} opacity="0.25" />
+      <circle cx="50" cy="50" r="48" fill={look.bg ? BG_COLORS[look.bg] : b} opacity={look.bg ? 0.9 : 0.25} />
+      {look.gear.includes('gear:cape') && <path d="M24 98 Q16 70 40 66 L60 66 Q84 70 76 98 Z" fill="#8e2a2a" />}
       <path d="M18 98 Q20 68 50 68 Q80 68 82 98 Z" fill={a} />
       <circle cx="50" cy="48" r="18" fill={SKIN} />
       <circle cx="43" cy="48" r="2" fill="#2b2b2b" />
       <circle cx="57" cy="48" r="2" fill="#2b2b2b" />
       <path d="M44 56 Q50 60 56 56" fill="none" stroke="#2b2b2b" strokeWidth="1.5" strokeLinecap="round" />
       <Gear shape={c.shape} a={a} b={b} />
+      {look.gear.includes('gear:iron-helm') && <path d="M31 48 Q50 14 69 48 L64 48 Q50 26 36 48 Z" fill="#9aa3b2" />}
+      {look.gear.includes('gear:wooden-sword') && <g><rect x="14" y="54" width="5" height="34" rx="2" fill="#a9743d" /><rect x="9" y="70" width="15" height="4" rx="2" fill="#6b4423" /></g>}
     </svg>
   );
 }

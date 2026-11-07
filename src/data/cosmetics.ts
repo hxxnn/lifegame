@@ -21,3 +21,9 @@ export function latestTitle(unlockedIds: string[]): string | null {
   }
   return null;
 }
+
+/** 해금된 배경(가장 고급 1개)과 장비(전부). */
+export function equippedLook(unlockedIds: string[]): { bg: string | null; gear: string[] } {
+  const owned = COSMETIC_SEQUENCE.filter((id) => unlockedIds.includes(id));
+  return { bg: owned.filter((id) => id.startsWith('bg:')).at(-1) ?? null, gear: owned.filter((id) => id.startsWith('gear:')) };
+}

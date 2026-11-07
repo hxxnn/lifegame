@@ -2,7 +2,7 @@ import { addDays, dateKey, weekIdOf } from './dates';
 import { clearRateOf, rollTheme } from './difficulty';
 import { statLevels } from './progress';
 import { generateDay } from './quests';
-import type { PlayerState, QuestDef, Rng, WeekRecord } from './types';
+import type { DayRecord, PlayerState, QuestDef, Rng, WeekRecord } from './types';
 
 /** Brings the state up to `now`: settles finished weeks and generates every day since lastDate. */
 export function syncState(state: PlayerState, now: Date, pool: QuestDef[], rng: Rng): PlayerState {
@@ -33,4 +33,10 @@ export function syncState(state: PlayerState, now: Date, pool: QuestDef[], rng: 
     previousIds = day.quests.map((q) => q.questId);
   }
   return { ...state, weeks, lastDate: today };
+}
+
+/** Today's record, or the latest generated one if the clock was corrected backwards (so Home never gets stuck). */
+export function pickDisplayDay(state: PlayerState, todayKey: string): DayRecord | null {
+  const days = state.weeks.flatMap((w) => w.days);
+  return days.find((d) => d.date === todayKey) ?? days.at(-1) ?? null;
 }

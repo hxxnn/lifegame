@@ -3,12 +3,20 @@ import { COSMETIC_LABELS } from '../data/cosmetics';
 import { STORIES } from '../data/stories';
 import { statLevels } from '../domain/progress';
 import { STAT_IDS, STAT_NAMES } from '../domain/types';
+import { Character } from './screens/Character';
+import { Gallery } from './screens/Gallery';
 import { Home } from './screens/Home';
 import { Onboarding } from './screens/Onboarding';
+import { Settings } from './screens/Settings';
 import { useGame } from './store';
 
-export type TabId = 'home';
-const TABS: { id: TabId; icon: string; label: string }[] = [{ id: 'home', icon: '🏠', label: '홈' }];
+export type TabId = 'home' | 'character' | 'gallery' | 'settings';
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: 'home', icon: '🏠', label: '홈' },
+  { id: 'character', icon: '🧙', label: '캐릭터' },
+  { id: 'gallery', icon: '🎁', label: '도감' },
+  { id: 'settings', icon: '⚙️', label: '설정' },
+];
 
 export function App() {
   const { state, dispatch, todayKey, storageOk, recovered } = useGame();
@@ -52,6 +60,9 @@ export function App() {
         {!storageOk && <div className="banner warn" role="alert">⚠️ 이 브라우저에서는 진행 상황을 저장할 수 없어요. 탭을 닫으면 사라지니 설정에서 내보내기로 백업하세요.</div>}
         {recovered && <div className="banner">저장 데이터가 손상되어 새로 시작했어요. 이전 데이터는 브라우저에 백업으로 남아 있어요.</div>}
         {tab === 'home' && <Home state={state} todayKey={todayKey} dispatch={dispatch} />}
+        {tab === 'character' && <Character state={state} todayKey={todayKey} dispatch={dispatch} />}
+        {tab === 'gallery' && <Gallery state={state} />}
+        {tab === 'settings' && <Settings state={state} dispatch={dispatch} />}
       </main>
       <nav className="tabs" aria-label="메뉴">
         <div className="inner">

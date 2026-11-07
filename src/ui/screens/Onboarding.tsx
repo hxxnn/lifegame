@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CHARACTERS } from '../../data/characters';
 import { STAT_IDS, STAT_NAMES, type StatId } from '../../domain/types';
 import { CharacterAvatar } from '../components/CharacterAvatar';
+import { Icon } from '../components/Icons';
 
 export function Onboarding({ onStart }: { onStart: (p: { characterId: string; focus: [StatId, StatId]; nickname: string }) => void }) {
   const [nickname, setNickname] = useState('');
@@ -16,12 +17,12 @@ export function Onboarding({ onStart }: { onStart: (p: { characterId: string; fo
       <h1>⚔️ 라이프 RPG</h1>
       <p className="muted">매일의 작은 퀘스트로 나의 캐릭터를 키워 보세요.</p>
 
-      <section className="card">
+      <section className="surface">
         <h2>1. 닉네임</h2>
         <input type="text" value={nickname} maxLength={20} placeholder="모험가 이름 (최대 20자)" onChange={(e) => setNickname(e.target.value)} aria-label="닉네임" />
       </section>
 
-      <section className="card">
+      <section className="surface">
         <h2>2. 캐릭터 선택</h2>
         <div className="grid">
           {CHARACTERS.map((c) => (
@@ -34,19 +35,19 @@ export function Onboarding({ onStart }: { onStart: (p: { characterId: string; fo
         </div>
       </section>
 
-      <section className="card">
+      <section className="surface">
         <h2>3. 이번 주 주력 스탯 2개</h2>
         <p className="muted">주력 스탯의 퀘스트가 더 많이 나와요. 월요일에만 바꿀 수 있어요.</p>
         <div className="grid">
           {STAT_IDS.map((s) => (
-            <button key={s} className={`pick stat-${s}`} aria-pressed={focus.includes(s)} onClick={() => toggle(s)}>
-              <strong>{STAT_NAMES[s]}</strong>
+            <button key={s} className="pick" aria-pressed={focus.includes(s)} onClick={() => toggle(s)}>
+              <Icon name={s} size={24} /><div><strong>{STAT_NAMES[s]}</strong></div>
             </button>
           ))}
         </div>
       </section>
 
-      <button className="btn" disabled={!ready} onClick={() => ready && onStart({ characterId: characterId!, focus: focus as [StatId, StatId], nickname })}>
+      <button className="btn block" disabled={!ready} onClick={() => ready && onStart({ characterId: characterId!, focus: focus as [StatId, StatId], nickname })}>
         모험 시작하기
       </button>
     </main>

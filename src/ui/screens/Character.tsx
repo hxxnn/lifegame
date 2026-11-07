@@ -3,6 +3,7 @@ import { CHARACTERS } from '../../data/characters';
 import { addDays, weekIdOf } from '../../domain/dates';
 import { STAT_IDS, STAT_NAMES, type PlayerState, type StatId } from '../../domain/types';
 import { CharacterAvatar } from '../components/CharacterAvatar';
+import { Icon } from '../components/Icons';
 import { StatBar } from '../components/StatBar';
 import { canChangeProfile, isCharacterUnlocked, type Action } from '../store';
 
@@ -16,7 +17,7 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
 
   return (
     <>
-      <section className="card row">
+      <section className="surface row">
         <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} />
         <div className="grow">
           <h1>{current.name}</h1>
@@ -24,11 +25,11 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
           <p className="muted">주력 스탯: {state.focusStats?.map((s) => STAT_NAMES[s]).join(', ')}</p>
         </div>
       </section>
-      <section className="card">
+      <section className="surface">
         <h2>스탯</h2>
         {STAT_IDS.map((s) => <StatBar key={s} stat={s} xp={state.xp[s]} focus={state.focusStats?.includes(s)} />)}
       </section>
-      <section className="card">
+      <section className="surface">
         <h2>캐릭터·주력 스탯 변경</h2>
         {!editable ? (
           <p className="muted">변경은 월요일에만 할 수 있어요. 다음 변경 가능일: {nextMonday}</p>
@@ -44,7 +45,7 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
             </div>
             <div className="grid" style={{ marginBottom: 10 }}>
               {STAT_IDS.map((s) => (
-                <button key={s} className={`pick stat-${s}`} aria-pressed={focus.includes(s)} onClick={() => toggle(s)}><strong>{STAT_NAMES[s]}</strong></button>
+                <button key={s} className="pick" aria-pressed={focus.includes(s)} onClick={() => toggle(s)}><Icon name={s} size={24} /><div><strong>{STAT_NAMES[s]}</strong></div></button>
               ))}
             </div>
             <button className="btn" disabled={focus.length !== 2} onClick={() => dispatch({ type: 'changeProfile', characterId, focus: focus as [StatId, StatId], now: new Date() })}>

@@ -10,7 +10,7 @@ import { CharacterAvatar } from '../components/CharacterAvatar';
 function Compare({ me, other }: { me: SharePayload; other: SharePayload }) {
   const name = (p: SharePayload) => CHARACTERS.find((c) => c.id === p.char)?.name ?? '';
   return (
-    <section className="card">
+    <section className="surface">
       <h2>비교</h2>
       <div className="compare">
         <div><CharacterAvatar id={me.char} size={64} /><div><strong>{me.nick}</strong></div><div className="muted">{name(me)}</div></div>
@@ -19,7 +19,7 @@ function Compare({ me, other }: { me: SharePayload; other: SharePayload }) {
         {STAT_IDS.map((s) => (
           <div key={s} style={{ display: 'contents' }}>
             <span className={me.lv[s] > other.lv[s] ? 'win' : ''}>Lv.{me.lv[s]}</span>
-            <span className={`stat-${s}`}>{STAT_NAMES[s]}</span>
+            <span >{STAT_NAMES[s]}</span>
             <span className={other.lv[s] > me.lv[s] ? 'win' : ''}>Lv.{other.lv[s]}</span>
           </div>
         ))}
@@ -67,7 +67,7 @@ export function Share({ state, hash, onCloseCompare }: { state: PlayerState; has
           <div><button className="btn ghost" onClick={onCloseCompare} style={{ marginTop: 8 }}>닫기</button></div>
         </div>
       ))}
-      <section className="card">
+      <section className="surface">
         <h2>내 카드 공유</h2>
         <p className="muted">친구에게 링크를 보내면 내 캐릭터와 나란히 비교할 수 있어요.</p>
         <div className="row" style={{ marginBottom: 8 }}>

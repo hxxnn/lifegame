@@ -8,7 +8,7 @@ export function Gallery({ state }: { state: PlayerState }) {
   const nextIdx = COSMETIC_SEQUENCE.findIndex((id) => !state.unlockedIds.includes(id));
   return (
     <>
-      <section className="card">
+      <section className="surface">
         <h2>꾸미기 도감</h2>
         {nextIdx >= 0 && <p className="muted">다음 해금까지 {milestoneThreshold(nextIdx + 1) - state.totalCleared}개 클리어 남았어요.</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -23,7 +23,7 @@ export function Gallery({ state }: { state: PlayerState }) {
           })}
         </ul>
       </section>
-      <section className="card">
+      <section className="surface">
         <h2>스토리</h2>
         {STAT_IDS.flatMap((stat) =>
           BALANCE.statUnlockLevels.map((lv) => {
@@ -31,7 +31,7 @@ export function Gallery({ state }: { state: PlayerState }) {
             const story = STORIES[id];
             return state.unlockedIds.includes(id) ? (
               <details key={id} style={{ marginBottom: 8 }}>
-                <summary className={`stat-${stat}`}><strong>{STAT_NAMES[stat]} Lv.{lv} · {story.title}</strong></summary>
+                <summary ><strong>{STAT_NAMES[stat]} Lv.{lv} · {story.title}</strong></summary>
                 <p>{story.text}</p>
               </details>
             ) : (

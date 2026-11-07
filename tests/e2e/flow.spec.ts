@@ -25,11 +25,11 @@ async function second(browser: Browser, when: Date) {
 test('onboarding gives 5 weekday quests; checking persists across reload', async ({ page }) => {
   await start(page, WED);
   await expect(page.locator('.quest')).toHaveCount(5);
-  await expect(page.getByText('0/5')).toBeVisible();
+  await expect(page.getByTestId('today-progress')).toHaveText('0/5');
   await page.locator('.quest').first().click();
-  await expect(page.getByText('1/5')).toBeVisible();
+  await expect(page.getByTestId('today-progress')).toHaveText('1/5');
   await page.reload();
-  await expect(page.getByText('1/5')).toBeVisible();
+  await expect(page.getByTestId('today-progress')).toHaveText('1/5');
 });
 
 test('weekend shows 7 quests', async ({ page }) => {
@@ -84,5 +84,5 @@ test('export, reset, import restores progress', async ({ page }) => {
   await page.setInputFiles('input[type=file]', { name: 'save.json', mimeType: 'application/json', buffer: Buffer.from(saved) });
   await expect(page.getByText('가져오기 완료!')).toBeVisible();
   await page.getByRole('button', { name: '홈' }).click();
-  await expect(page.getByText('1/5')).toBeVisible();
+  await expect(page.getByTestId('today-progress')).toHaveText('1/5');
 });

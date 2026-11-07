@@ -28,14 +28,14 @@ export function Settings({ state, dispatch }: { state: PlayerState; dispatch: (a
 
   return (
     <>
-      <section className="card">
+      <section className="surface">
         <h2>닉네임</h2>
         <div className="row">
           <input type="text" value={nick} maxLength={20} onChange={(e) => setNick(e.target.value)} aria-label="닉네임 수정" />
           <button className="btn" onClick={() => dispatch({ type: 'setNickname', nickname: nick })}>저장</button>
         </div>
       </section>
-      <section className="card">
+      <section className="surface">
         <h2>백업</h2>
         <p className="muted">진행 상황은 이 브라우저에만 저장돼요. 기기를 바꾸기 전에 꼭 내보내기로 백업하세요.</p>
         <div className="row">
@@ -47,7 +47,7 @@ export function Settings({ state, dispatch }: { state: PlayerState; dispatch: (a
         </div>
         {msg && <p role="status" style={{ marginTop: 8 }}>{msg}</p>}
       </section>
-      <section className="card">
+      <section className="surface">
         <h2>초기화</h2>
         <p className="muted">모든 진행 상황이 삭제돼요.</p>
         <button className="btn danger" onClick={() => window.confirm('정말 모든 데이터를 삭제할까요?') && dispatch({ type: 'reset' })}>모두 삭제</button>

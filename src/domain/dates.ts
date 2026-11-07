@@ -24,3 +24,8 @@ export function weekIdOf(key: string): string {
 }
 export const isWeekend = (key: string): boolean => [0, 6].includes(weekday(key));
 export const isMonday = (key: string): boolean => weekday(key) === 1;
+
+/** 하루 시작 시간(startHour)을 반영한 논리 날짜. 새벽 2시, startHour 4면 전날로 센다. */
+export function logicalDate(now: Date, startHour: number): string {
+  return dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() - startHour, now.getMinutes()));
+}

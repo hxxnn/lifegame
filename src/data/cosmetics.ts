@@ -27,3 +27,16 @@ export function equippedLook(unlockedIds: string[]): { bg: string | null; gear: 
   const owned = COSMETIC_SEQUENCE.filter((id) => unlockedIds.includes(id));
   return { bg: owned.filter((id) => id.startsWith('bg:')).at(-1) ?? null, gear: owned.filter((id) => id.startsWith('gear:')) };
 }
+
+export function unlockCategory(id: string): string {
+  if (id.startsWith('title:')) return '칭호';
+  if (id.startsWith('gear:')) return '장비';
+  if (id.startsWith('bg:')) return '배경';
+  if (id.startsWith('char:')) return '캐릭터';
+  return '보상';
+}
+
+/** 순서상 처음으로 잠겨 있는 항목의 인덱스. 모두 열렸으면 -1. */
+export function nextUnlockIndex(unlockedIds: string[]): number {
+  return COSMETIC_SEQUENCE.findIndex((id) => !unlockedIds.includes(id));
+}

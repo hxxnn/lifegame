@@ -26,3 +26,13 @@ describe('dates', () => {
     expect(dateKey(new Date(2026, 0, 5, 0, 0))).toBe('2026-01-05');
   });
 });
+
+import { logicalDate } from '../../src/domain/dates';
+describe('logicalDate', () => {
+  it('shifts the day boundary by the start hour', () => {
+    expect(logicalDate(new Date(2026, 10, 10, 2, 30), 4)).toBe('2026-11-09');
+    expect(logicalDate(new Date(2026, 10, 10, 4, 0), 4)).toBe('2026-11-10');
+    expect(logicalDate(new Date(2026, 10, 10, 0, 5), 0)).toBe('2026-11-10');
+    expect(logicalDate(new Date(2026, 10, 9, 3, 0), 4)).toBe('2026-11-08'); // Monday 03:00 still counts as Sunday
+  });
+});

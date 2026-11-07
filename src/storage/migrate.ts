@@ -9,8 +9,15 @@ const isDate = (v: unknown): v is string => typeof v === 'string' && DATE.test(v
 const isNonNegInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
 /** Validates untrusted data and returns a PlayerState, or null when it is not a valid v1 save. */
-export function migrate(raw: unknown): PlayerState | null {
-  if (!isObj(raw) || raw.version !== 1) return null;
+export function migrate(input: unknown): PlayerState | null {
+  if (!isObj(input) || (input.version !== 1 && input.version !== 2)) return null;
+  // v1 -> v2: add the new fields with defaults
+  const raw: Record<string, unknown> = input.version === 1
+    ? { ...input, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: null }
+    : input;
+  if (!isObj(raw.settings) || !Number.isInteger(raw.settings.dayStartHour) || (raw.settings.dayStartHour as number) < 0 || (raw.settings.dayStartHour as number) > 6) return null;
+  if (!isObj(raw.backup) || (raw.backup.lastAt !== null && !isDate(raw.backup.lastAt)) || (raw.backup.nudgedAt !== null && !isDate(raw.backup.nudgedAt))) return null;
+  if (raw.reportSeenWeek !== null && !isDate(raw.reportSeenWeek)) return null;
   if (!isStr(raw.nickname) || Array.from(raw.nickname).length > 20) return null;
   if (raw.characterId !== null && !CHARACTERS.some((c) => c.id === raw.characterId)) return null;
   if ((raw.characterId === null) !== (raw.focusStats === null)) return null;
@@ -34,6 +41,7 @@ export function migrate(raw: unknown): PlayerState | null {
     for (const d of w.days) {
       if (!isObj(d) || !isDate(d.date) || typeof d.allDoneBonus !== 'boolean' || !Array.isArray(d.quests)) return null;
       if (!d.quests.every((q) => isObj(q) && isStr(q.questId) && typeof q.done === 'boolean')) return null;
+      if (d.swaps !== undefined && !isNonNegInt(d.swaps)) return null;
     }
   }
   return raw as unknown as PlayerState;

@@ -14,6 +14,7 @@ export interface SharePayload {
 
 const MAX_INPUT = 2000;
 const NICK_MAX = 20;
+const MAX_CLEARED = 1_000_000;
 const NO_NAME = '이름 없음';
 // control chars, zero-width / bidi override characters
 const BAD_CHARS = /[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁦-⁩﻿]/g;
@@ -63,7 +64,7 @@ export function decodeShare(s: string): SharePayload | null {
     if (!Array.isArray(foc) || foc.length !== 2 || foc[0] === foc[1]) return null;
     const focus = foc.map((i) => STAT_IDS[i as number]);
     if (focus.some((f) => f === undefined)) return null;
-    if (!Number.isInteger(cleared) || (cleared as number) < 0) return null;
+    if (!Number.isInteger(cleared) || (cleared as number) < 0 || (cleared as number) > MAX_CLEARED) return null;
     const lv = {} as Record<StatId, number>;
     STAT_IDS.forEach((st, i) => (lv[st] = lvs[i] as number));
     const okTitle = typeof title === 'string' && title.startsWith('title:') && title in COSMETIC_LABELS ? title : null;

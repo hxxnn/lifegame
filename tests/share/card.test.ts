@@ -27,3 +27,9 @@ describe('share links', () => {
     expect(latestTitle(['title:novice', 'title:steady'])).toBe('title:steady');
   });
 });
+
+describe('share link robustness', () => {
+  it('shareUrl strips a trailing index.html from the base', () => {
+    expect(shareUrl('https://x.test/app/index.html', p).startsWith('https://x.test/app/#/compare/')).toBe(true);
+  });
+});

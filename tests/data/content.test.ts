@@ -68,3 +68,18 @@ describe('equippedLook', () => {
     expect(equippedLook(['bg:meadow', 'bg:night', 'gear:cape', 'title:novice'])).toEqual({ bg: 'bg:night', gear: ['gear:cape'] });
   });
 });
+
+import { nextUnlockIndex, unlockCategory } from '../../src/data/cosmetics';
+describe('unlock hints', () => {
+  it('unlockCategory names the kind of item', () => {
+    expect(unlockCategory('title:novice')).toBe('칭호');
+    expect(unlockCategory('gear:cape')).toBe('장비');
+    expect(unlockCategory('bg:night')).toBe('배경');
+    expect(unlockCategory('char:sky')).toBe('캐릭터');
+  });
+  it('nextUnlockIndex is the first locked item in sequence order', () => {
+    expect(nextUnlockIndex([])).toBe(0);
+    expect(nextUnlockIndex(['title:novice', 'gear:wooden-sword'])).toBe(2);
+    expect(nextUnlockIndex(COSMETIC_SEQUENCE)).toBe(-1);
+  });
+});

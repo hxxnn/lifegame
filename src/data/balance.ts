@@ -24,6 +24,10 @@ export const BALANCE = {
   weeklyBonusDays: 5,
   weeklyBonusXp: 100,
   statUnlockLevels: [5, 10, 15, 20, 25, 30],
+  dailySwaps: 2,
+  backupNudgeDays: 7,
+  backupMinCleared: 10,
+  historyWeeks: 8,
   highClear: 0.8,
   lowClear: 0.4,
 };

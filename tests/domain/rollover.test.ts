@@ -73,3 +73,13 @@ describe('pickDisplayDay', () => {
     expect(pickDisplayDay(emptyState(), '2026-11-11')).toBeNull();
   });
 });
+
+describe('syncState with a custom day start', () => {
+  it('treats early-morning hours as the previous day', () => {
+    const s0 = { ...ready(), settings: { dayStartHour: 4 } };
+    const s = syncState(s0, new Date(2026, 10, 9, 2, 0), pool, mulberry32(1)); // Monday 02:00 -> Sunday
+    expect(s.lastDate).toBe('2026-11-08');
+    expect(s.weeks[0].weekId).toBe('2026-11-02');
+    expect(s.weeks[0].days[0].quests.length).toBe(7);
+  });
+});

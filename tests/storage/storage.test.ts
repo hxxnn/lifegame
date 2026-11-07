@@ -76,7 +76,7 @@ describe('migrate / export / import', () => {
     expect(migrate({ ...sample(), xp: { ...sample().xp, int: -1 } })).toBeNull();
     expect(migrate({ ...sample(), xp: { ...sample().xp, int: Infinity } })).toBeNull();
     expect(migrate({ ...sample(), xp: undefined })).toBeNull();
-    expect(migrate({ ...sample(), version: 2 })).toBeNull();
+    expect(migrate({ ...sample(), version: 9 })).toBeNull();
     expect(migrate(null)).toBeNull();
     expect(migrate(sample())).toEqual(sample());
   });
@@ -93,6 +93,21 @@ describe('migrate / export / import', () => {
     s.weeks[0].days[0].date = 'someday';
     expect(migrate(s)).toBeNull();
     expect(migrate({ ...emptyState() })).not.toBeNull();
+  });
+  it('upgrades a v1 save to v2 with default settings', () => {
+    const { settings, backup, reportSeenWeek, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek;
+    const up = migrate({ ...rest, version: 1 });
+    expect(up).toEqual({ ...rest, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: null });
+  });
+  it('validates the v2 fields', () => {
+    expect(migrate({ ...sample(), settings: { dayStartHour: 7 } })).toBeNull();
+    expect(migrate({ ...sample(), settings: { dayStartHour: 2.5 } })).toBeNull();
+    expect(migrate({ ...sample(), backup: { lastAt: 'x', nudgedAt: null } })).toBeNull();
+    expect(migrate({ ...sample(), reportSeenWeek: 5 })).toBeNull();
+    const s = sample();
+    s.weeks[0].days[0].swaps = -1;
+    expect(migrate(s)).toBeNull();
   });
   it('import(export(s)) equals s', () => {
     expect(importJson(exportJson(sample()))).toEqual(sample());

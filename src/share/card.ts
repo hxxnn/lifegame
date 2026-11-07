@@ -6,7 +6,7 @@ import { decodeShare, encodeShare, type SharePayload } from './codec';
 const PREFIX = '#/compare/';
 
 export function shareUrl(base: string, payload: SharePayload): string {
-  return `${base.replace(/\/$/, '')}/${PREFIX}${encodeShare(payload)}`;
+  return `${base.replace(/index\.html$/, '').replace(/\/$/, '')}/${PREFIX}${encodeShare(payload)}`;
 }
 
 export function isCompareHash(hash: string): boolean {

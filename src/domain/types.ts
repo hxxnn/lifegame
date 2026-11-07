@@ -16,7 +16,7 @@ export interface QuestDef {
   requires?: { stat: StatId; level: number };
 }
 export interface QuestInstance { questId: string; done: boolean }
-export interface DayRecord { date: string; quests: QuestInstance[]; allDoneBonus: boolean }
+export interface DayRecord { date: string; quests: QuestInstance[]; allDoneBonus: boolean; swaps?: number }
 export interface WeekRecord {
   weekId: string;
   theme: ThemeId;
@@ -25,7 +25,7 @@ export interface WeekRecord {
   clearRate: number | null;
 }
 export interface PlayerState {
-  version: 1;
+  version: 2;
   nickname: string;
   characterId: string | null;
   focusStats: [StatId, StatId] | null;
@@ -34,11 +34,14 @@ export interface PlayerState {
   unlockedIds: string[];
   totalCleared: number;
   lastDate: string | null;
+  settings: { dayStartHour: number };
+  backup: { lastAt: string | null; nudgedAt: string | null };
+  reportSeenWeek: string | null;
 }
 
 export function emptyState(): PlayerState {
   return {
-    version: 1,
+    version: 2,
     nickname: '',
     characterId: null,
     focusStats: null,
@@ -47,5 +50,8 @@ export function emptyState(): PlayerState {
     unlockedIds: [],
     totalCleared: 0,
     lastDate: null,
+    settings: { dayStartHour: 0 },
+    backup: { lastAt: null, nudgedAt: null },
+    reportSeenWeek: null,
   };
 }

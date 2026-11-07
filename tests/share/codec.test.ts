@@ -46,3 +46,10 @@ describe('share codec', () => {
     expect(buildPayload(state, payload().lv, null)).toEqual({ nick: '철수', char: 'shade', lv: payload().lv, focus: ['agi', 'luk'], title: null, cleared: 9 });
   });
 });
+
+describe('share link bounds', () => {
+  it('rejects an absurd clear count', () => {
+    expect(decodeShare(encodeShare(payload({ cleared: 1_000_001 })))).toBeNull();
+    expect(decodeShare(encodeShare(payload({ cleared: 1_000_000 })))).not.toBeNull();
+  });
+});

@@ -1,4 +1,4 @@
-import { addDays, dateKey, weekIdOf } from './dates';
+import { addDays, logicalDate, weekIdOf } from './dates';
 import { clearRateOf, rollTheme } from './difficulty';
 import { statLevels } from './progress';
 import { generateDay } from './quests';
@@ -7,7 +7,7 @@ import type { DayRecord, PlayerState, QuestDef, Rng, WeekRecord } from './types'
 /** Brings the state up to `now`: settles finished weeks and generates every day since lastDate. */
 export function syncState(state: PlayerState, now: Date, pool: QuestDef[], rng: Rng): PlayerState {
   if (!state.characterId || !state.focusStats) return state;
-  const today = dateKey(now);
+  const today = logicalDate(now, state.settings.dayStartHour);
   if (state.lastDate !== null && today <= state.lastDate) return state;
 
   const weeks: WeekRecord[] = [...state.weeks];

@@ -83,3 +83,15 @@ describe('syncState with a custom day start', () => {
     expect(s.weeks[0].days[0].quests.length).toBe(7);
   });
 });
+
+import { effectiveToday } from '../../src/domain/rollover';
+describe('effectiveToday', () => {
+  it('never goes earlier than the last generated day (day start moved later, clock moved back)', () => {
+    const s = syncState(ready(), at(2026, 11, 9), pool, mulberry32(1)); // Monday, lastDate 2026-11-09
+    const later = { ...s, settings: { dayStartHour: 4 } };
+    expect(effectiveToday(later, new Date(2026, 10, 9, 1, 0))).toBe('2026-11-09'); // logical day would be Sunday
+    expect(effectiveToday(s, new Date(2026, 10, 5, 12, 0))).toBe('2026-11-09');
+    expect(effectiveToday(s, new Date(2026, 10, 10, 12, 0))).toBe('2026-11-10');
+    expect(effectiveToday(ready(), new Date(2026, 10, 10, 12, 0))).toBe('2026-11-10');
+  });
+});

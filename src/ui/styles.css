@@ -200,3 +200,6 @@ select { font: inherit; color: var(--ink); background: var(--well); border: 1px 
 .unlock-list li.next { font-weight: 800; color: var(--ink); }
 .locked-pick { opacity: 0.55; }
 details summary:focus-visible { outline: 3px solid var(--accent-text); outline-offset: 2px; border-radius: 8px; }
+
+/* 고정된 상단 바·하단 탭에 가려지지 않게: 포커스/스크롤 이동 시 여백 확보 */
+html { scroll-padding-top: 88px; scroll-padding-bottom: 120px; }

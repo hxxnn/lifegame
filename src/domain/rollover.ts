@@ -40,3 +40,9 @@ export function pickDisplayDay(state: PlayerState, todayKey: string): DayRecord 
   const days = state.weeks.flatMap((w) => w.days);
   return days.find((d) => d.date === todayKey) ?? days.at(-1) ?? null;
 }
+
+/** 화면과 규칙이 쓰는 '오늘'. 이미 생성된 마지막 날보다 앞으로 가지 않는다(하루 시작 시간을 늦췄거나 시계가 되돌려진 경우). */
+export function effectiveToday(state: PlayerState, now: Date): string {
+  const logical = logicalDate(now, state.settings.dayStartHour);
+  return state.lastDate !== null && state.lastDate > logical ? state.lastDate : logical;
+}

@@ -12,6 +12,7 @@ export function completeQuest(state: PlayerState, date: string, questId: string,
   const weekIdx = state.weeks.findIndex((w) => w.days.some((d) => d.date === date));
   if (weekIdx < 0) return state;
   const week = state.weeks[weekIdx];
+  if (week.clearRate !== null) return state; // 이미 정산된 주는 바꾸지 않는다
   const dayIdx = week.days.findIndex((d) => d.date === date);
   const day = week.days[dayIdx];
   const qIdx = day.quests.findIndex((q) => q.questId === questId);

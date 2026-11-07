@@ -158,12 +158,18 @@ test('last week\'s report shows once on Monday and can be dismissed', async ({ p
 
 test('backup nudge appears after 10 clears and can be snoozed for the day', async ({ page }) => {
   await start(page, SAT); // 7 quests
-  for (let i = 0; i < 7; i++) await completeNext(page);
+  for (let i = 0; i < 7; i++) {
+    await completeNext(page);
+    await expect(page.getByTestId('today-progress')).toHaveText(`${i + 1}/7`);
+  }
   await page.clock.setSystemTime(new Date(2026, 10, 15, 12));
   await page.reload();
   await expect(page.locator('.quest')).toHaveCount(7);
   await expect(page.getByText('아직 백업한 적이 없어요.')).toHaveCount(0);
-  for (let i = 0; i < 3; i++) await completeNext(page);
+  for (let i = 0; i < 3; i++) {
+    await completeNext(page);
+    await expect(page.getByTestId('today-progress')).toHaveText(`${i + 1}/7`);
+  }
   await expect(page.getByText('아직 백업한 적이 없어요.')).toBeVisible();
   await page.getByRole('button', { name: '나중에' }).click();
   await expect(page.getByText('아직 백업한 적이 없어요.')).toHaveCount(0);

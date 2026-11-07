@@ -65,3 +65,11 @@ describe('completeQuest', () => {
     expect(statLevels(s)).toEqual({ str: 2, agi: 1, int: 1, spi: 1, luk: 1 });
   });
 });
+
+describe('completeQuest on a settled week', () => {
+  it('refuses to change days of a week whose clear rate is already frozen', () => {
+    const s = stateWith('calm', [{ date: '2026-11-09', ids: ['s10'] }]);
+    const settled = { ...s, weeks: [{ ...s.weeks[0], clearRate: 0 }] };
+    expect(completeQuest(settled, '2026-11-09', 's10', pool)).toBe(settled);
+  });
+});

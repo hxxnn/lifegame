@@ -12,3 +12,12 @@ export const COSMETIC_LABELS: Record<string, string> = {
   'bg:meadow': '초원 배경', 'bg:night': '밤하늘 배경', 'bg:castle': '성 배경',
   ...Object.fromEntries(CHARACTERS.filter((c) => !c.startsUnlocked).map((c) => [`char:${c.id}`, `${c.name} (캐릭터)`])),
 };
+
+/** 해금된 칭호 중 가장 뒤쪽(고급) 칭호 ID. 없으면 null. */
+export function latestTitle(unlockedIds: string[]): string | null {
+  for (let i = COSMETIC_SEQUENCE.length - 1; i >= 0; i--) {
+    const id = COSMETIC_SEQUENCE[i];
+    if (id.startsWith('title:') && unlockedIds.includes(id)) return id;
+  }
+  return null;
+}

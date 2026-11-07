@@ -8,13 +8,16 @@ import { Gallery } from './screens/Gallery';
 import { Home } from './screens/Home';
 import { Onboarding } from './screens/Onboarding';
 import { Settings } from './screens/Settings';
+import { Share } from './screens/Share';
+import { isCompareHash } from '../share/card';
 import { useGame } from './store';
 
-export type TabId = 'home' | 'character' | 'gallery' | 'settings';
+export type TabId = 'home' | 'character' | 'gallery' | 'share' | 'settings';
 const TABS: { id: TabId; icon: string; label: string }[] = [
   { id: 'home', icon: '🏠', label: '홈' },
   { id: 'character', icon: '🧙', label: '캐릭터' },
   { id: 'gallery', icon: '🎁', label: '도감' },
+  { id: 'share', icon: '🔗', label: '공유' },
   { id: 'settings', icon: '⚙️', label: '설정' },
 ];
 
@@ -22,6 +25,15 @@ export function App() {
   const { state, dispatch, todayKey, storageOk, recovered } = useGame();
   const [tab, setTab] = useState<TabId>('home');
   const [toast, setToast] = useState<string | null>(null);
+  const [hash, setHash] = useState(() => location.hash);
+  useEffect(() => {
+    const on = () => setHash(location.hash);
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  useEffect(() => {
+    if (isCompareHash(hash)) setTab('share');
+  }, [hash]);
   const prev = useRef<{ levels: Record<string, number>; unlocked: string[] } | null>(null);
 
   useEffect(() => {
@@ -62,6 +74,7 @@ export function App() {
         {tab === 'home' && <Home state={state} todayKey={todayKey} dispatch={dispatch} />}
         {tab === 'character' && <Character state={state} todayKey={todayKey} dispatch={dispatch} />}
         {tab === 'gallery' && <Gallery state={state} />}
+        {tab === 'share' && <Share state={state} hash={hash} onCloseCompare={() => { history.replaceState(null, '', location.pathname); setHash(''); }} />}
         {tab === 'settings' && <Settings state={state} dispatch={dispatch} />}
       </main>
       <nav className="tabs" aria-label="메뉴">

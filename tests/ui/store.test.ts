@@ -66,3 +66,45 @@ describe('store reducer', () => {
     expect(reducer(started(wed), { type: 'setNickname', nickname: '  하늘  ' }).nickname).toBe('하늘');
   });
 });
+
+import { pendingReport } from '../../src/domain/report';
+import { QUEST_POOL } from '../../src/data/questPool';
+
+describe('v2 actions', () => {
+  it('swap replaces a regular quest and counts it', () => {
+    const s = started(wed);
+    const day = s.weeks[0].days[0];
+    const target = day.quests.find((q) => !QUEST_BY_ID[q.questId].fixed)!.questId;
+    const out = reducer(s, { type: 'swap', date: '2026-11-11', questId: target });
+    const d2 = out.weeks[0].days[0];
+    expect(d2.swaps).toBe(1);
+    expect(d2.quests.map((q) => q.questId)).not.toContain(target);
+    expect(d2.quests.length).toBe(day.quests.length);
+  });
+  it('dismissReport records the viewed week so the report does not return', () => {
+    let s = started(new Date(2026, 10, 8, 12)); // Sunday
+    s = reducer(s, { type: 'init', now: new Date(2026, 10, 9, 12) }); // Monday
+    expect(pendingReport(s, QUEST_POOL)).not.toBeNull();
+    s = reducer(s, { type: 'dismissReport' });
+    expect(s.reportSeenWeek).toBe('2026-11-02');
+    expect(pendingReport(s, QUEST_POOL)).toBeNull();
+  });
+  it('markBackup / snoozeBackup update the backup bookkeeping', () => {
+    const s = started(wed);
+    expect(reducer(s, { type: 'markBackup', date: '2026-11-11' }).backup).toEqual({ lastAt: '2026-11-11', nudgedAt: '2026-11-11' });
+    expect(reducer(s, { type: 'snoozeBackup', date: '2026-11-11' }).backup).toEqual({ lastAt: null, nudgedAt: '2026-11-11' });
+  });
+  it('setDayStart accepts 0-6 whole hours only', () => {
+    const s = started(wed);
+    expect(reducer(s, { type: 'setDayStart', hour: 4 }).settings.dayStartHour).toBe(4);
+    expect(reducer(s, { type: 'setDayStart', hour: 9 })).toBe(s);
+    expect(reducer(s, { type: 'setDayStart', hour: 2.5 })).toBe(s);
+  });
+  it('profile change follows the logical date (Monday 02:00 with a 4am start is still Sunday)', () => {
+    const s = { ...started(new Date(2026, 10, 8, 12)), settings: { dayStartHour: 4 } };
+    const early = new Date(2026, 10, 9, 2, 0);
+    expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: early })).toBe(s);
+    const later = new Date(2026, 10, 9, 5, 0);
+    expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: later }).characterId).toBe('shade');
+  });
+});

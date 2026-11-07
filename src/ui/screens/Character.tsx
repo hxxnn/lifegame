@@ -4,6 +4,7 @@ import { addDays, weekIdOf } from '../../domain/dates';
 import { STAT_IDS, STAT_NAMES, type PlayerState, type StatId } from '../../domain/types';
 import { CharacterAvatar } from '../components/CharacterAvatar';
 import { Icon } from '../components/Icons';
+import { History } from '../components/History';
 import { StatBar } from '../components/StatBar';
 import { canChangeProfile, isCharacterUnlocked, type Action } from '../store';
 
@@ -54,6 +55,7 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
           </>
         )}
       </section>
+      <History state={state} />
     </>
   );
 }

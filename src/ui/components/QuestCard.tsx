@@ -5,9 +5,9 @@ import { Icon } from './Icons';
 
 const TIER_NAMES = { 1: '쉬움', 2: '보통', 3: '어려움', 4: '극한' } as const;
 
-export function QuestCard({ def, done, theme, focus, expanded, onSelect, onCancel, onComplete }: {
-  def: QuestDef; done: boolean; theme: ThemeId; focus: boolean; expanded: boolean;
-  onSelect: () => void; onCancel: () => void; onComplete: () => void;
+export function QuestCard({ def, done, theme, focus, expanded, swapsLeft, canSwap, onSelect, onCancel, onComplete, onSwap }: {
+  def: QuestDef; done: boolean; theme: ThemeId; focus: boolean; expanded: boolean; swapsLeft: number; canSwap: boolean;
+  onSelect: () => void; onCancel: () => void; onComplete: () => void; onSwap: () => void;
 }) {
   const xp = Math.round(def.baseXp * BALANCE.themeMultiplier[theme]);
   const kind = def.fixed ? 'pill' : focus ? 'big' : '';
@@ -33,6 +33,11 @@ export function QuestCard({ def, done, theme, focus, expanded, onSelect, onCance
       </button>
       {expanded && !done && (
         <div className="q-confirm" role="group" aria-label={`${def.title} 완료 확인`}>
+          {!def.fixed && (
+            <button className="btn ghost small swap" disabled={!canSwap} onClick={onSwap} title={canSwap ? undefined : swapsLeft > 0 ? '바꿀 수 있는 퀘스트가 없어요' : '오늘 교체를 모두 썼어요'}>
+              교체 {swapsLeft}/{BALANCE.dailySwaps}
+            </button>
+          )}
           <button className="btn ghost" onClick={onCancel}>취소</button>
           <button className="btn" ref={confirmRef} onClick={onComplete}>완료하기</button>
         </div>

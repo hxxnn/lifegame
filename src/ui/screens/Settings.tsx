@@ -1,20 +1,18 @@
-import { useState } from 'react';
-import { dateKey } from '../../domain/dates';
+import { useEffect, useState } from 'react';
 import type { PlayerState } from '../../domain/types';
 import { exportJson, importJson } from '../../storage/backup';
+import { downloadBlob } from '../download';
 import type { Action } from '../store';
 
-export function Settings({ state, dispatch }: { state: PlayerState; dispatch: (a: Action) => void }) {
+export function Settings({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
   const [nick, setNick] = useState(state.nickname);
   const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => setNick(state.nickname), [state.nickname]);
 
   const download = () => {
-    const url = URL.createObjectURL(new Blob([exportJson(state)], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lifegame-save-${dateKey(new Date())}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([exportJson(state)], { type: 'application/json' }), `lifegame-save-${todayKey}.json`);
+    dispatch({ type: 'markBackup', date: todayKey });
+    setMsg('백업 파일을 저장했어요.');
   };
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -36,8 +34,16 @@ export function Settings({ state, dispatch }: { state: PlayerState; dispatch: (a
         </div>
       </section>
       <section className="surface">
+        <h2>하루 시작 시간</h2>
+        <p className="muted">새벽에 활동하는 편이라면 늦춰 보세요. 이 시간이 되어야 새 하루와 새 퀘스트가 시작돼요.</p>
+        <select aria-label="하루 시작 시간" value={state.settings.dayStartHour} onChange={(e) => dispatch({ type: 'setDayStart', hour: Number(e.target.value) })}>
+          {[0, 1, 2, 3, 4, 5, 6].map((h) => <option key={h} value={h}>{h === 0 ? '자정 (0시)' : `새벽 ${h}시`}</option>)}
+        </select>
+      </section>
+      <section className="surface">
         <h2>백업</h2>
         <p className="muted">진행 상황은 이 브라우저에만 저장돼요. 기기를 바꾸기 전에 꼭 내보내기로 백업하세요.</p>
+        <p className="muted">마지막 백업: {state.backup.lastAt ?? '아직 없어요'}</p>
         <div className="row">
           <button className="btn" onClick={download}>내보내기</button>
           <label className="btn ghost">

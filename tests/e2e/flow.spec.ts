@@ -15,6 +15,11 @@ async function start(page: Page, when: Date, nick = '철수', char = '에버', s
   await expect(page.locator('.quest').first()).toBeVisible();
 }
 
+async function complete(page: Page, index = 0) {
+  await page.locator('.quest').nth(index).click();
+  await page.getByRole('button', { name: '완료하기' }).click();
+}
+
 async function second(browser: Browser, when: Date) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
@@ -26,10 +31,30 @@ test('onboarding gives 5 weekday quests; checking persists across reload', async
   await start(page, WED);
   await expect(page.locator('.quest')).toHaveCount(5);
   await expect(page.getByTestId('today-progress')).toHaveText('0/5');
-  await page.locator('.quest').first().click();
+  await complete(page);
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
   await page.reload();
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
+});
+
+test('tapping a quest only asks for confirmation; cancel, Esc and outside taps back out', async ({ page }) => {
+  await start(page, WED);
+  const card = page.locator('.quest').first();
+  await card.click();
+  await expect(page.getByRole('button', { name: '완료하기' })).toBeVisible();
+  await expect(page.getByTestId('today-progress')).toHaveText('0/5');
+  await page.getByRole('button', { name: '취소' }).click();
+  await expect(page.getByRole('button', { name: '완료하기' })).toHaveCount(0);
+  await card.click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: '완료하기' })).toHaveCount(0);
+  await card.click();
+  await page.getByRole('heading', { name: '스탯' }).click();
+  await expect(page.getByRole('button', { name: '완료하기' })).toHaveCount(0);
+  await card.click();
+  await page.locator('.quest').nth(1).click();
+  await expect(page.getByRole('button', { name: '완료하기' })).toHaveCount(1); // selection moved, not duplicated
+  await expect(page.getByTestId('today-progress')).toHaveText('0/5');
 });
 
 test('weekend shows 7 quests', async ({ page }) => {
@@ -50,7 +75,7 @@ test('profile change is blocked midweek and allowed on Monday', async ({ page })
 
 test('share link opens a side-by-side comparison; broken links show an error', async ({ page, browser }) => {
   await start(page, WED);
-  await page.locator('.quest').first().click();
+  await complete(page);
   await page.getByRole('button', { name: '공유' }).click();
   const url = await page.getByLabel('공유 링크').inputValue();
   const other = await second(browser, WED);
@@ -66,7 +91,7 @@ test('share link opens a side-by-side comparison; broken links show an error', a
 
 test('export, reset, import restores progress', async ({ page }) => {
   await start(page, WED);
-  await page.locator('.quest').first().click();
+  await complete(page);
   await page.getByRole('button', { name: '설정' }).click();
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '내보내기' }).click()]);
   const path = await download.path();

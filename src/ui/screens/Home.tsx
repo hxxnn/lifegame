@@ -1,4 +1,5 @@
 import { COSMETIC_LABELS, latestTitle } from '../../data/cosmetics';
+import { useEffect, useState } from 'react';
 import { QUEST_BY_ID } from '../../data/questPool';
 import { pickDisplayDay } from '../../domain/rollover';
 import { STAT_IDS, type PlayerState } from '../../domain/types';
@@ -9,6 +10,21 @@ import { WeekBanner } from '../components/WeekBanner';
 import type { Action } from '../store';
 
 export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelected(null);
+    const onPointer = (e: PointerEvent) => {
+      if (!(e.target as Element).closest('.quest-wrap')) setSelected(null);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointer);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointer);
+    };
+  }, [selected]);
+
   const day = pickDisplayDay(state, todayKey);
   const week = state.weeks.find((w) => w.days.includes(day!));
   if (!week || !day) return <p className="muted">오늘의 퀘스트를 불러오는 중…</p>;
@@ -28,7 +44,9 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
         <div className="meter" style={{ margin: '4px 0 12px' }}><i style={{ width: `${(done / total) * 100}%` }} /></div>
         {day.quests.map((q) => {
           const def = QUEST_BY_ID[q.questId];
-          return def ? <QuestCard key={q.questId} def={def} done={q.done} theme={week.theme} focus={!!state.focusStats?.includes(def.stat)} onComplete={() => dispatch({ type: 'complete', date: day.date, questId: q.questId })} /> : null;
+          return def ? <QuestCard key={q.questId} def={def} done={q.done} theme={week.theme} focus={!!state.focusStats?.includes(def.stat)} expanded={selected === q.questId}
+            onSelect={() => setSelected(q.questId)} onCancel={() => setSelected(null)}
+            onComplete={() => { setSelected(null); dispatch({ type: 'complete', date: day.date, questId: q.questId }); }} /> : null;
         })}
         {done === total && <p className="muted">🎉 오늘의 퀘스트를 모두 완료했어요! (+10% 보너스)</p>}
       </section>

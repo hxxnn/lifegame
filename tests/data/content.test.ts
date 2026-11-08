@@ -33,6 +33,28 @@ describe('quest pool', () => {
     for (const q of regular.filter((x) => x.tier === 3)) expect(q.requires).toEqual({ stat: q.stat, level: 5 });
     for (const q of regular.filter((x) => x.tier === 4)) expect(q.requires).toEqual({ stat: q.stat, level: 10 });
     for (const q of regular.filter((x) => x.tier <= 2)) expect(q.requires).toBeUndefined();
+    for (const q of regular.filter((x) => x.tier === 5)) expect([15, 20, 25, 30]).toContain(q.requires?.level);
+  });
+});
+
+describe('legend quests (tier 5)', () => {
+  it('each stat has 8 legend quests unlocked in steps: 3 at Lv15, 2 at Lv20, 2 at Lv25, 1 at Lv30', () => {
+    for (const stat of STAT_IDS) {
+      const legend = regular.filter((q) => q.stat === stat && q.tier === 5);
+      expect(legend.length).toBe(8);
+      for (const [lv, n] of [[15, 3], [20, 2], [25, 2], [30, 1]] as const) {
+        const here = legend.filter((q) => q.requires?.level === lv);
+        expect(here.length).toBe(n);
+        for (const q of here) expect(q.requires).toEqual({ stat, level: lv });
+      }
+    }
+  });
+  it('legend quests pay tier-5 xp and keep existing quest ids stable', () => {
+    expect(BALANCE.tierBaseXp[5]).toBe(80);
+    for (const q of regular.filter((x) => x.tier === 5)) expect(q.baseXp).toBe(80);
+    // ids saved by existing players must not change
+    expect(QUEST_POOL.find((q) => q.id === 'str-01')?.title).toBe('푸시업 10개');
+    expect(QUEST_POOL.find((q) => q.id === 'luk-21')?.title).toBe('완전히 새로운 도전 하나 시작');
   });
 });
 

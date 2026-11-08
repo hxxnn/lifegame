@@ -13,10 +13,10 @@ export const BALANCE = {
   themeTierWeights: {
     calm: { 1: 80, 2: 20 },
     normal: { 1: 30, 2: 60, 3: 10 },
-    challenge: { 2: 30, 3: 60, 4: 10 },
-    hell: { 3: 50, 4: 50 },
+    challenge: { 2: 25, 3: 55, 4: 15, 5: 5 },
+    hell: { 3: 35, 4: 40, 5: 25 },
   } as Record<ThemeId, Partial<Record<Tier, number>>>,
-  tierBaseXp: { 1: 10, 2: 20, 3: 35, 4: 55 } as Record<Tier, number>,
+  tierBaseXp: { 1: 10, 2: 20, 3: 35, 4: 55, 5: 80 } as Record<Tier, number>,
   focusShare: 0.6,
   weekdayQuests: 5,
   weekendQuests: 7,

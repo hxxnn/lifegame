@@ -89,3 +89,19 @@ describe('quests', () => {
     expect(new Set(day.quests.map((q) => q.questId)).size).toBe(5);
   });
 });
+
+import { QUEST_POOL } from '../../src/data/questPool';
+describe('legend quests in generation', () => {
+  const served = (level: number): number => {
+    let legend = 0;
+    for (let seed = 0; seed < 400; seed++) {
+      const day = generateDay({ date: '2026-11-07', theme: 'hell', focus: ['str', 'int'], levels: lv(level), pool: QUEST_POOL, previousIds: [] }, mulberry32(seed));
+      legend += day.quests.filter((q) => QUEST_POOL.find((p) => p.id === q.questId)!.tier === 5).length;
+    }
+    return legend;
+  };
+  it('are never served below the first unlock level and do show up in hell weeks from Lv15', () => {
+    expect(served(14)).toBe(0);
+    expect(served(15)).toBeGreaterThan(0);
+  });
+});

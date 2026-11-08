@@ -1,7 +1,7 @@
 export type StatId = 'str' | 'agi' | 'int' | 'spi' | 'luk';
 export const STAT_IDS: StatId[] = ['str', 'agi', 'int', 'spi', 'luk'];
 export const STAT_NAMES: Record<StatId, string> = { str: '힘', agi: '민첩', int: '지력', spi: '정신력', luk: '행운' };
-export type Tier = 1 | 2 | 3 | 4;
+export type Tier = 1 | 2 | 3 | 4 | 5;
 export type ThemeId = 'calm' | 'normal' | 'challenge' | 'hell';
 export type Rng = () => number;
 

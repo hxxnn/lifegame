@@ -43,8 +43,8 @@ describe('syncState', () => {
     expect(s.weeks.flatMap((w) => w.days).length).toBe(23);
     expect(s.weeks.slice(0, 3).map((w) => w.clearRate)).toEqual([0, 0, 0]);
     expect(s.weeks[3].clearRate).toBeNull();
-    expect(s.weeks[0].theme).toBe('challenge');
-    expect(s.weeks.slice(1).map((w) => w.theme)).toEqual(['normal', 'normal', 'normal']);
+    // a brand-new player cannot roll challenge/hell weeks, so the stubbed rng lands on 'normal' every time
+    expect(s.weeks.map((w) => w.theme)).toEqual(['normal', 'normal', 'normal', 'normal']);
     expect(s.weeks[1].days.flatMap((d) => d.quests).length).toBe(39);
     expect(s.weeks.flatMap((w) => w.days).flatMap((d) => d.quests).every((q) => !q.done)).toBe(true);
   });
@@ -93,5 +93,19 @@ describe('effectiveToday', () => {
     expect(effectiveToday(s, new Date(2026, 10, 5, 12, 0))).toBe('2026-11-09');
     expect(effectiveToday(s, new Date(2026, 10, 10, 12, 0))).toBe('2026-11-10');
     expect(effectiveToday(ready(), new Date(2026, 10, 10, 12, 0))).toBe('2026-11-10');
+  });
+});
+
+describe('syncState theme gating', () => {
+  const firstTheme = (xp: number, seed: number) =>
+    syncState({ ...ready(), xp: { str: xp, agi: 0, int: 0, spi: 0, luk: 0 } }, at(2026, 11, 9), pool, mulberry32(seed)).weeks[0].theme;
+  it('a new player never starts in a challenge or hell week', () => {
+    for (let seed = 0; seed < 300; seed++) expect(['calm', 'normal']).toContain(firstTheme(0, seed));
+  });
+  it('a Lv10 focus stat can roll hell weeks again', () => {
+    const themes = new Set<string>();
+    for (let seed = 0; seed < 600; seed++) themes.add(firstTheme(1500, seed));
+    expect(themes.has('hell')).toBe(true);
+    expect(themes.has('challenge')).toBe(true);
   });
 });

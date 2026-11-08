@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clearRateOf, rollTheme, themeProbabilities } from '../../src/domain/difficulty';
+import { allowedThemes, clearRateOf, rollTheme, themeProbabilities } from '../../src/domain/difficulty';
 import { mulberry32, pickWeighted } from '../../src/domain/rng';
 import { BALANCE } from '../../src/data/balance';
 import type { DayRecord, ThemeId } from '../../src/domain/types';
@@ -33,5 +33,26 @@ describe('difficulty', () => {
     });
     expect(clearRateOf([d(5, 2)])).toBeCloseTo(0.4);
     expect(clearRateOf([])).toBe(0);
+  });
+});
+
+describe('theme gating by unlocked quest tiers', () => {
+  it('challenge needs the hard tier (Lv5), hell needs the extreme tier (Lv10), judged by the focus stats', () => {
+    expect(allowedThemes([1, 1])).toEqual(['calm', 'normal']);
+    expect(allowedThemes([4, 4])).toEqual(['calm', 'normal']);
+    expect(allowedThemes([5, 1])).toEqual(['calm', 'normal', 'challenge']);
+    expect(allowedThemes([4, 9])).toEqual(['calm', 'normal', 'challenge']);
+    expect(allowedThemes([10, 3])).toEqual(['calm', 'normal', 'challenge', 'hell']);
+    expect(allowedThemes([30, 30])).toEqual(['calm', 'normal', 'challenge', 'hell']);
+  });
+  it('rollTheme only returns allowed themes and renormalises the odds', () => {
+    for (let seed = 0; seed < 500; seed++) {
+      expect(['calm', 'normal']).toContain(rollTheme(0.9, mulberry32(seed), ['calm', 'normal']));
+      expect(rollTheme(null, mulberry32(seed), ['calm'])).toBe('calm');
+    }
+    const c = { calm: 0, normal: 0 };
+    for (let seed = 0; seed < 4000; seed++) c[rollTheme(null, mulberry32(seed), ['calm', 'normal']) as 'calm' | 'normal']++;
+    expect(c.calm / 4000).toBeGreaterThan(0.38); // 30 : 40 -> about 43% calm
+    expect(c.calm / 4000).toBeLessThan(0.48);
   });
 });

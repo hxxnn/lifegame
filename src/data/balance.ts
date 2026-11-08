@@ -17,6 +17,10 @@ export const BALANCE = {
     hell: { 3: 35, 4: 40, 5: 25 },
   } as Record<ThemeId, Partial<Record<Tier, number>>>,
   tierBaseXp: { 1: 10, 2: 20, 3: 35, 4: 55, 5: 80 } as Record<Tier, number>,
+  /** 이 난이도의 퀘스트가 열리는 스탯 레벨 */
+  tierUnlockLevel: { 3: 5, 4: 10, 5: 15 } as Record<3 | 4 | 5, number>,
+  /** 이 테마가 나오려면 열려 있어야 하는 가장 높은 난이도 */
+  themeMinTier: { calm: 1, normal: 2, challenge: 3, hell: 4 } as Record<ThemeId, Tier>,
   focusShare: 0.6,
   weekdayQuests: 5,
   weekendQuests: 7,

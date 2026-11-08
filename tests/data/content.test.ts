@@ -34,6 +34,10 @@ describe('quest pool', () => {
     for (const q of regular.filter((x) => x.tier === 4)) expect(q.requires).toEqual({ stat: q.stat, level: 10 });
     for (const q of regular.filter((x) => x.tier <= 2)) expect(q.requires).toBeUndefined();
     for (const q of regular.filter((x) => x.tier === 5)) expect([15, 20, 25, 30]).toContain(q.requires?.level);
+    // theme gating reads the same numbers
+    expect(BALANCE.tierUnlockLevel[3]).toBe(5);
+    expect(BALANCE.tierUnlockLevel[4]).toBe(10);
+    expect(BALANCE.themeMinTier).toEqual({ calm: 1, normal: 2, challenge: 3, hell: 4 });
   });
 });
 

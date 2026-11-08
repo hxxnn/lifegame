@@ -1,5 +1,5 @@
 import { addDays, logicalDate, weekIdOf } from './dates';
-import { clearRateOf, rollTheme } from './difficulty';
+import { allowedThemes, clearRateOf, rollTheme } from './difficulty';
 import { statLevels } from './progress';
 import { generateDay } from './quests';
 import type { DayRecord, PlayerState, QuestDef, Rng, WeekRecord } from './types';
@@ -24,7 +24,8 @@ export function syncState(state: PlayerState, now: Date, pool: QuestDef[], rng: 
         prevRate = clearRateOf(current.days);
         weeks[weeks.length - 1] = { ...current, clearRate: prevRate };
       }
-      current = { weekId, theme: rollTheme(prevRate, rng), days: [], weeklyBonus: false, clearRate: null };
+      const lv = statLevels({ ...state, weeks });
+      current = { weekId, theme: rollTheme(prevRate, rng, allowedThemes(focus.map((s) => lv[s]))), days: [], weeklyBonus: false, clearRate: null };
       weeks.push(current);
     }
     const levels = statLevels({ ...state, weeks });

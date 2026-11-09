@@ -1,4 +1,4 @@
-import { CHARACTERS } from '../../data/characters';
+import { CHARACTERS, artStage } from '../../data/characters';
 import { composeAvatar, type Pixel } from '../../data/sprites';
 import { artUrl } from '../artUrl';
 
@@ -14,11 +14,11 @@ function runs(pixels: Pixel[]): { x: number; y: number; w: number; c: string }[]
   return out;
 }
 
-export function CharacterAvatar({ id, size = 96, unlockedIds = [] }: { id: string; size?: number; unlockedIds?: string[] }) {
+export function CharacterAvatar({ id, size = 96, unlockedIds = [], level = 1 }: { id: string; size?: number; unlockedIds?: string[]; level?: number }) {
   const c = CHARACTERS.find((x) => x.id === id) ?? CHARACTERS[0];
   if (c.art) {
     // 일러스트 캐릭터: 픽셀 장비와 배경은 겹치지 않는다
-    return <img className="avatar-art" src={artUrl(c.art.portrait)} alt={`${c.name} 캐릭터`} width={size} height={size} decoding="async" style={{ borderRadius: Math.round(size / 6) }} />;
+    return <img className="avatar-art" src={artUrl(artStage(c.art, level).portrait)} alt={`${c.name} 캐릭터`} width={size} height={size} decoding="async" style={{ borderRadius: Math.round(size / 6) }} />;
   }
   const a = composeAvatar(c.id, unlockedIds);
   return (

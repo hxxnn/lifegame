@@ -254,3 +254,22 @@ test('illustrated characters load as images, pixel ones stay vector', async ({ p
   await expect(full).toBeVisible();
   await expect.poll(() => full.evaluate((el) => (el as HTMLImageElement).naturalHeight)).toBeGreaterThan(300);
 });
+
+
+test('the character\'s look changes as the character level grows', async ({ page }) => {
+  await start(page, WED, '철수', '에버', ['힘', '지력']);
+  const portrait = page.getByRole('img', { name: '에버 캐릭터' }).first();
+  await expect(portrait).toHaveAttribute('src', /ember-1-portrait/);
+  // five stats at Lv6 -> character level 26 -> second look
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('lifegame:v1')!);
+    s.xp = { str: 634, agi: 634, int: 634, spi: 634, luk: 634 };
+    localStorage.setItem('lifegame:v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await expect(page.getByRole('img', { name: '에버 캐릭터' }).first()).toHaveAttribute('src', /ember-2-portrait/);
+  await page.getByRole('button', { name: '캐릭터' }).click();
+  await expect(page.getByRole('img', { name: '에버 전신' })).toHaveAttribute('src', /ember-2-full/);
+  await expect(page.getByText('캐릭터 Lv.26')).toBeVisible();
+  await expect(page.getByText(/다음 모습/)).toContainText('Lv.50');
+});

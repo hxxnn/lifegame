@@ -190,3 +190,11 @@ details summary:focus-visible { border-radius: 4px; }
 /* 일러스트 캐릭터: 원화의 종이색 바탕에 올려 어두운 옷도 어느 테마에서나 또렷하게 보인다 */
 .avatar-art { display: block; object-fit: cover; background: #f4ede1; }
 .char-full { display: block; width: auto; height: 224px; flex: none; }
+
+/* 모습 목록: 아직 열리지 않은 모습은 실루엣만 보여 준다 */
+.stage-strip { display: flex; gap: 8px; margin-top: 8px; }
+.stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+.stage-thumb { position: relative; display: grid; place-items: center; width: 100%; max-width: 64px; aspect-ratio: 1; border-radius: 10px; background: #f4ede1; overflow: hidden; }
+.stage-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stage.locked img { filter: brightness(0); opacity: 0.28; }
+.stage-thumb .icon { position: absolute; color: #5b5346; }

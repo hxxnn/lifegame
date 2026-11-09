@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CHARACTERS } from '../../data/characters';
 import { COSMETIC_LABELS, latestTitle } from '../../data/cosmetics';
-import { statLevels } from '../../domain/progress';
+import { characterLevelOf, statLevels } from '../../domain/progress';
 import { STAT_IDS, STAT_NAMES, type PlayerState } from '../../domain/types';
 import { buildPayload, type SharePayload } from '../../share/codec';
 import { isCompareHash, parseCompareHash, renderCardPng, shareUrl } from '../../share/card';
@@ -16,9 +16,9 @@ function Compare({ me, other }: { me: SharePayload; other: SharePayload }) {
     <section className="surface">
       <h2>비교</h2>
       <div className="compare">
-        <div><CharacterAvatar id={me.char} size={64} /><div><strong>{me.nick}</strong></div><div className="muted">{name(me)}{me.title ? `, ${COSMETIC_LABELS[me.title]}` : ''}</div></div>
+        <div><CharacterAvatar id={me.char} size={64} level={characterLevelOf(me.lv)} /><div><strong>{me.nick}</strong></div><div className="muted">{name(me)}{me.title ? `, ${COSMETIC_LABELS[me.title]}` : ''}</div></div>
         <span className="muted">VS</span>
-        <div><CharacterAvatar id={other.char} size={64} /><div><strong>{other.nick}</strong></div><div className="muted">{name(other)}{other.title ? `, ${COSMETIC_LABELS[other.title]}` : ''}</div></div>
+        <div><CharacterAvatar id={other.char} size={64} level={characterLevelOf(other.lv)} /><div><strong>{other.nick}</strong></div><div className="muted">{name(other)}{other.title ? `, ${COSMETIC_LABELS[other.title]}` : ''}</div></div>
         {STAT_IDS.map((s) => (
           <div key={s} style={{ display: 'contents' }}>
             <span className={me.lv[s] > other.lv[s] ? 'win' : ''}>Lv.{me.lv[s]}</span>

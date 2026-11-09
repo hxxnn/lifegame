@@ -73,3 +73,14 @@ describe('completeQuest on a settled week', () => {
     expect(completeQuest(settled, '2026-11-09', 's10', pool)).toBe(settled);
   });
 });
+
+import { characterLevel, characterLevelOf } from '../../src/domain/progress';
+describe('character level', () => {
+  it('starts at 1 and adds up the stat levels (sum of the five levels minus 4)', () => {
+    expect(characterLevel(emptyState())).toBe(1);
+    expect(characterLevelOf({ str: 30, agi: 30, int: 30, spi: 30, luk: 30 })).toBe(146);
+    expect(characterLevelOf({ str: 10, agi: 6, int: 6, spi: 4, luk: 3 })).toBe(25);
+    const s = { ...emptyState(), xp: { str: 100, agi: 0, int: 0, spi: 0, luk: 0 } }; // str Lv2
+    expect(characterLevel(s)).toBe(2);
+  });
+});

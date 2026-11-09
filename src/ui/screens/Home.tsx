@@ -4,6 +4,7 @@ import { COSMETIC_LABELS, latestTitle } from '../../data/cosmetics';
 import { QUEST_BY_ID, QUEST_POOL } from '../../data/questPool';
 import { backupNudge, pendingReport, yesterdaySummary } from '../../domain/report';
 import { pickDisplayDay } from '../../domain/rollover';
+import { characterLevel } from '../../domain/progress';
 import { canSwap } from '../../domain/swap';
 import { STAT_IDS, type PlayerState } from '../../domain/types';
 import { exportJson, withBackupMark } from '../../storage/backup';
@@ -51,7 +52,7 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
   return (
     <>
       <section className="hero-compact">
-        <CharacterAvatar id={state.characterId!} size={72} unlockedIds={state.unlockedIds} />
+        <CharacterAvatar id={state.characterId!} size={72} unlockedIds={state.unlockedIds} level={characterLevel(state)} />
         <div className="grow">
           <h1>{state.nickname || '모험가'}</h1>
           <p className="muted">{title ? `${COSMETIC_LABELS[title]}, ` : ''}누적 클리어 {state.totalCleared}개{yesterday ? `, 어제 ${yesterday.done}/${yesterday.total}` : ''}</p>

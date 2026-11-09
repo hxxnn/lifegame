@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { COSMETIC_LABELS } from '../data/cosmetics';
 import { STORIES } from '../data/stories';
-import { statLevels } from '../domain/progress';
+import { characterLevel, statLevels } from '../domain/progress';
+import { CHARACTERS, artStage } from '../data/characters';
 import { pickDisplayDay } from '../domain/rollover';
 import { STAT_IDS, STAT_NAMES } from '../domain/types';
 import { isCompareHash } from '../share/card';
@@ -31,7 +32,7 @@ export function App() {
   const [tab, setTab] = useState<TabId>('home');
   const [toast, setToast] = useState<string | null>(null);
   const [hash, setHash] = useState(() => location.hash);
-  const prev = useRef<{ levels: Record<string, number>; unlocked: string[] } | null>(null);
+  const prev = useRef<{ levels: Record<string, number>; unlocked: string[]; look: string } | null>(null);
 
   useEffect(() => {
     const on = () => setHash(location.hash);
@@ -50,7 +51,12 @@ export function App() {
       for (const id of state.unlockedIds.filter((u) => !prev.current!.unlocked.includes(u)))
         msgs.push(`해금: ${COSMETIC_LABELS[id] ?? STORIES[id]?.title ?? id}${id.startsWith('char:') ? ' (월요일에 바꿀 수 있어요)' : id.startsWith('story:') ? ' (새 퀘스트도 열렸어요)' : ''}`);
     }
-    prev.current = { levels, unlocked: state.unlockedIds };
+    const ch = CHARACTERS.find((c) => c.id === state.characterId);
+    const stage = ch?.art ? artStage(ch.art, characterLevel(state)) : null;
+    const look = stage ? `${ch!.id}:${stage.level}` : '';
+    if (prev.current && stage && prev.current.look && prev.current.look.startsWith(`${ch!.id}:`) && prev.current.look !== look)
+      msgs.push(`새로운 모습 해금: ${ch!.name} Lv.${stage.level}`);
+    prev.current = { levels, unlocked: state.unlockedIds, look };
     if (msgs.length) setToast(msgs.length > 2 ? `${msgs.slice(0, 2).join(', ')} 외 ${msgs.length - 2}건` : msgs.join(', '));
   }, [state]);
 
@@ -90,7 +96,7 @@ export function App() {
     <>
       {toast && <div className="toast glass" role="status">{toast}</div>}
       <main className="app">
-        <TopBar characterId={state.characterId} nickname={state.nickname} unlockedIds={state.unlockedIds} progress={tab === 'home' ? null : progress} theme={theme} onToggleTheme={toggle} />
+        <TopBar characterId={state.characterId} nickname={state.nickname} unlockedIds={state.unlockedIds} level={characterLevel(state)} progress={tab === 'home' ? null : progress} theme={theme} onToggleTheme={toggle} />
         {notices}
         {tab === 'home' && <Home state={state} todayKey={todayKey} dispatch={dispatch} />}
         {tab === 'character' && <Character state={state} todayKey={todayKey} dispatch={dispatch} />}

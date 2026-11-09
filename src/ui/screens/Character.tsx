@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { CHARACTERS } from '../../data/characters';
+import { CHARACTERS, artStage } from '../../data/characters';
+import { characterLevel } from '../../domain/progress';
 import { addDays, weekIdOf } from '../../domain/dates';
 import { STAT_IDS, STAT_NAMES, type PlayerState, type StatId } from '../../domain/types';
 import { CharacterAvatar } from '../components/CharacterAvatar';
@@ -16,17 +17,41 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
   const [focus, setFocus] = useState<StatId[]>(state.focusStats ?? []);
   const toggle = (s: StatId) => setFocus((f) => (f.includes(s) ? f.filter((x) => x !== s) : f.length < 2 ? [...f, s] : f));
   const nextMonday = addDays(weekIdOf(todayKey), 7);
+  const level = characterLevel(state);
+  const stage = current.art ? artStage(current.art, level) : null;
+  const nextStage = current.art?.stages.find((st) => st.level > level) ?? null;
 
   return (
     <>
       <section className="surface row">
-        {current.art ? <img className="char-full" src={artUrl(current.art.full)} alt={`${current.name} 전신`} height={224} decoding="async" /> : <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} />}
+        {current.art ? <img className="char-full" src={artUrl(stage!.full)} alt={`${current.name} 전신`} height={224} decoding="async" /> : <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} level={level} />}
         <div className="grow">
           <h1>{current.name}</h1>
           <p className="muted">{current.tagline}</p>
+          <p><strong>캐릭터 Lv.{level}</strong></p>
           <p className="muted">주력 스탯: {state.focusStats?.map((s) => STAT_NAMES[s]).join(', ')}</p>
         </div>
       </section>
+      {current.art && (
+        <section className="surface">
+          <h2>모습</h2>
+          <p className="muted">{nextStage ? `다음 모습은 Lv.${nextStage.level}에 열려요` : '모든 모습을 열었어요'}</p>
+          <div className="stage-strip">
+            {current.art.stages.map((st) => {
+              const open = level >= st.level;
+              return (
+                <div key={st.level} className={`stage${open ? '' : ' locked'}`}>
+                  <div className="stage-thumb">
+                    <img src={artUrl(st.portrait)} alt={open ? `${current.name} Lv.${st.level} 모습` : ''} width={56} height={56} decoding="async" />
+                    {!open && <Icon name="lock" />}
+                  </div>
+                  <span className="muted">Lv.{st.level}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <section className="surface">
         <h2>스탯</h2>
         {STAT_IDS.map((s) => <StatBar key={s} stat={s} xp={state.xp[s]} focus={state.focusStats?.includes(s)} />)}

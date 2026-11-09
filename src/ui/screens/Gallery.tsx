@@ -3,6 +3,7 @@ import { BALANCE } from '../../data/balance';
 import { STORIES } from '../../data/stories';
 import { milestoneThreshold } from '../../domain/unlocks';
 import { STAT_IDS, STAT_NAMES, type PlayerState } from '../../domain/types';
+import { Icon } from '../components/Icons';
 
 export function Gallery({ state }: { state: PlayerState }) {
   const nextIdx = nextUnlockIndex(state.unlockedIds);
@@ -17,7 +18,9 @@ export function Gallery({ state }: { state: PlayerState }) {
             const next = i === nextIdx;
             return (
               <li key={id} className={`row between${open ? '' : ' locked'}${next ? ' next' : ''}`}>
-                <span>{open ? `✅ ${COSMETIC_LABELS[id]}` : next ? `🎯 다음 보상: ${COSMETIC_LABELS[id]} (${unlockCategory(id)})` : `🔒 ${unlockCategory(id)} ???`}</span>
+                <span className="label">
+                  {open ? <><Icon name="check" />{COSMETIC_LABELS[id]}</> : next ? <>다음 보상: {COSMETIC_LABELS[id]} ({unlockCategory(id)})</> : <><Icon name="lock" />{unlockCategory(id)} ???</>}
+                </span>
                 <span className="muted">{milestoneThreshold(i + 1)}개 클리어</span>
               </li>
             );
@@ -36,7 +39,7 @@ export function Gallery({ state }: { state: PlayerState }) {
                 <p>{story.text}</p>
               </details>
             ) : (
-              <p key={id} className="muted">🔒 {STAT_NAMES[stat]} Lv.{lv} 달성 시 해금</p>
+              <p key={id} className="muted row"><Icon name="lock" />{STAT_NAMES[stat]} Lv.{lv} 달성 시 해금</p>
             );
           }),
         )}

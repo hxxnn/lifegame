@@ -2,6 +2,7 @@ import { BALANCE } from '../../data/balance';
 import { clearRateOf } from '../../domain/difficulty';
 import type { PlayerState } from '../../domain/types';
 import { THEME_INFO } from '../themeInfo';
+import { Icon } from './Icons';
 
 export function History({ state }: { state: PlayerState }) {
   const weeks = state.weeks.slice(-BALANCE.historyWeeks).reverse();
@@ -16,10 +17,10 @@ export function History({ state }: { state: PlayerState }) {
         return (
           <div key={w.weekId} className="hist-row">
             <div className="row between">
-              <span><span aria-hidden="true">{info.icon}</span> {info.name} <span className="muted">{w.weekId.slice(5).replace('-', '/')} 주</span></span>
+              <span className="row"><Icon name={info.icon} />{info.name} <span className="muted">{w.weekId.slice(5).replace('-', '/')} 주</span></span>
               <strong>{rate}%{current ? <span className="muted"> 진행 중</span> : null}</strong>
             </div>
-            <div className="meter"><i style={{ width: `${rate}%` }} /></div>
+            <div className="meter"><i style={{ transform: `scaleX(${rate / 100})` }} /></div>
           </div>
         );
       })}

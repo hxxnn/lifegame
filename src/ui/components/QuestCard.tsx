@@ -19,17 +19,17 @@ export function QuestCard({ def, done, theme, focus, expanded, swapsLeft, canSwa
   return (
     <div className={`quest-wrap${expanded ? ' open' : ''}`}>
       <button className={`quest ${kind}`} aria-pressed={done} aria-expanded={done ? undefined : expanded} disabled={done} onClick={onSelect}>
-        <span className="q-ico"><Icon name={def.stat} size={kind === 'big' ? 26 : 22} /></span>
+        <span className="q-ico"><Icon name={def.stat} /></span>
         <span className="grow">
           <span className="q-title">{def.title}</span>
           {!def.fixed && <span className="q-desc">{def.desc}</span>}
           <span className="q-meta">
             <span className="chip">{STAT_NAMES[def.stat]}</span>
-            <span role="img" aria-label={`난이도 ${TIER_NAMES[def.tier]}`} className="stars">{'★'.repeat(def.tier)}{'☆'.repeat(5 - def.tier)}</span>
+            <span className="chip">{TIER_NAMES[def.tier]}</span>
             <span className="muted">{def.fixed ? '매일 고정  ' : ''}+{xp} XP</span>
           </span>
         </span>
-        <span className="check"><Icon name="check" size={18} /></span>
+        <span className="check"><Icon name="check" /></span>
       </button>
       {expanded && !done && (
         <div className="q-confirm" role="group" aria-label={`${def.title} 완료 확인`}>

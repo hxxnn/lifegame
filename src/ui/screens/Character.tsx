@@ -36,15 +36,15 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
           <p className="muted">변경은 월요일에만 할 수 있어요. 다음 변경 가능일: {nextMonday}</p>
         ) : (
           <>
-            <div className="grid" style={{ marginBottom: 10 }}>
+            <div className="grid" style={{ marginBottom: 12 }}>
               {CHARACTERS.map((c) => (
                 <button key={c.id} className="pick" aria-pressed={characterId === c.id} disabled={!isCharacterUnlocked(state, c.id)} onClick={() => setCharacterId(c.id)}>
                   <CharacterAvatar id={c.id} size={56} /><div><strong>{c.name}</strong></div>
-                  {!isCharacterUnlocked(state, c.id) && <div className="muted">🔒</div>}
+                  {!isCharacterUnlocked(state, c.id) && <Icon name="lock" />}
                 </button>
               ))}
             </div>
-            <div className="grid" style={{ marginBottom: 10 }}>
+            <div className="grid" style={{ marginBottom: 12 }}>
               {STAT_IDS.map((s) => (
                 <button key={s} className="pick" aria-pressed={focus.includes(s)} onClick={() => toggle(s)}><Icon name={s} size={24} /><div><strong>{STAT_NAMES[s]}</strong></div></button>
               ))}

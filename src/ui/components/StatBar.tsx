@@ -8,11 +8,11 @@ export function StatBar({ stat, xp, focus }: { stat: StatId; xp: number; focus?:
   return (
     <div className="stat">
       <div className="row between">
-        <strong className="row" style={{ gap: 8 }}><Icon name={stat} size={20} />{STAT_NAMES[stat]}{focus && <span className="chip chip-accent">주력</span>}</strong>
+        <strong className="row" style={{ gap: 8 }}><Icon name={stat} />{STAT_NAMES[stat]}{focus && <span className="focus-tag">주력</span>}</strong>
         <span className="muted">Lv.{level}{need === null ? ' MAX' : `  ${into}/${need}`}</span>
       </div>
       <div className="meter" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${STAT_NAMES[stat]} 경험치`}>
-        <i style={{ width: `${pct}%` }} />
+        <i style={{ transform: `scaleX(${pct / 100})` }} />
       </div>
     </div>
   );

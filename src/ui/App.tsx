@@ -46,7 +46,7 @@ export function App() {
     const levels = statLevels(state);
     const msgs: string[] = [];
     if (prev.current) {
-      for (const s of STAT_IDS) if (levels[s] > prev.current.levels[s]) msgs.push(`${STAT_NAMES[s]} 레벨 ${levels[s]} 달성!`);
+      for (const s of STAT_IDS) if (levels[s] > prev.current.levels[s]) msgs.push(`${STAT_NAMES[s]} 레벨 ${levels[s]} 달성`);
       for (const id of state.unlockedIds.filter((u) => !prev.current!.unlocked.includes(u)))
         msgs.push(`해금: ${COSMETIC_LABELS[id] ?? STORIES[id]?.title ?? id}${id.startsWith('char:') ? ' (월요일에 바꿀 수 있어요)' : id.startsWith('story:') ? ' (새 퀘스트도 열렸어요)' : ''}`);
     }

@@ -114,7 +114,7 @@ test('export, reset, import restores progress', async ({ page }) => {
   await page.getByRole('button', { name: '모험 시작하기' }).click();
   await page.getByRole('button', { name: '설정' }).click();
   await page.setInputFiles('input[type=file]', { name: 'save.json', mimeType: 'application/json', buffer: Buffer.from(saved) });
-  await expect(page.getByText('가져오기 완료!')).toBeVisible();
+  await expect(page.getByText('가져오기 완료')).toBeVisible();
   await page.getByRole('button', { name: '홈' }).click();
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
 });

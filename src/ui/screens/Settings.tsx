@@ -18,7 +18,7 @@ export function Settings({ state, todayKey, dispatch }: { state: PlayerState; to
     if (!file) return;
     try {
       dispatch({ type: 'import', state: importJson(await file.text()), now: new Date() });
-      setMsg('가져오기 완료!');
+      setMsg('가져오기 완료');
     } catch {
       setMsg('올바른 저장 파일이 아니에요. 기존 데이터는 그대로예요.');
     }

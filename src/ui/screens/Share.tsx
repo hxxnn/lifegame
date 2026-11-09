@@ -22,7 +22,7 @@ function Compare({ me, other }: { me: SharePayload; other: SharePayload }) {
         {STAT_IDS.map((s) => (
           <div key={s} style={{ display: 'contents' }}>
             <span className={me.lv[s] > other.lv[s] ? 'win' : ''}>Lv.{me.lv[s]}</span>
-            <span className="row" style={{ gap: 6, justifyContent: 'center' }}><Icon name={s} size={18} />{STAT_NAMES[s]}</span>
+            <span className="row" style={{ gap: 8, justifyContent: 'center' }}><Icon name={s} />{STAT_NAMES[s]}</span>
             <span className={other.lv[s] > me.lv[s] ? 'win' : ''}>Lv.{other.lv[s]}</span>
           </div>
         ))}
@@ -62,7 +62,7 @@ export function Share({ state, hash, onCloseCompare }: { state: PlayerState; has
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      setMsg('링크를 복사했어요!');
+      setMsg('링크를 복사했어요');
     } catch {
       setMsg('복사에 실패했어요. 아래 링크를 직접 복사하세요.');
     }

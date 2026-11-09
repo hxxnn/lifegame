@@ -49,7 +49,7 @@ export function renderCardPng(p: SharePayload): Promise<Blob> {
     const y = 170 + i * 30;
     g.fillStyle = STAT_COLORS[s];
     g.font = 'bold 16px sans-serif';
-    g.fillText(`${STAT_NAMES[s]}${p.focus.includes(s) ? ' ★' : ''}`, 36, y);
+    g.fillText(`${STAT_NAMES[s]}${p.focus.includes(s) ? ' (주력)' : ''}`, 36, y);
     g.fillStyle = '#2a2540';
     g.fillRect(130, y - 14, 380, 14);
     g.fillStyle = STAT_COLORS[s];

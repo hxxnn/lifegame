@@ -70,7 +70,7 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
       <WeekBanner week={week} />
       <section className="quests">
         <div className="row between"><h2>오늘의 퀘스트</h2><strong data-testid="today-progress">{done}/{total}</strong></div>
-        <div className="meter" style={{ margin: '4px 0 12px' }}><i style={{ width: `${(done / total) * 100}%` }} /></div>
+        <div className="meter" style={{ margin: '4px 0 12px' }}><i style={{ transform: `scaleX(${done / total})` }} /></div>
         {day.quests.map((q) => {
           const def = QUEST_BY_ID[q.questId];
           return def ? (
@@ -81,7 +81,7 @@ export function Home({ state, todayKey, dispatch }: { state: PlayerState; todayK
               onComplete={() => { setSelected(null); dispatch({ type: 'complete', date: day.date, questId: q.questId }); }} />
           ) : null;
         })}
-        {done === total && <p className="muted">오늘의 퀘스트를 모두 완료했어요! (+10% 보너스)</p>}
+        {done === total && <p className="muted">오늘의 퀘스트를 모두 완료했어요. 하루 보너스 +10%</p>}
       </section>
       <section className="surface">
         <h2>스탯</h2>

@@ -15,7 +15,7 @@ export function Onboarding({ onStart, notices }: { onStart: (p: { characterId: s
 
   return (
     <main className="app">
-      <h1>⚔️ 라이프 RPG</h1>
+      <h1>라이프 RPG</h1>
       <p className="muted">매일의 작은 퀘스트로 나의 캐릭터를 키워 보세요.</p>
       {notices}
 
@@ -35,7 +35,7 @@ export function Onboarding({ onStart, notices }: { onStart: (p: { characterId: s
             </button>
           ))}
         </div>
-        <details style={{ marginTop: 10 }}>
+        <details style={{ marginTop: 12 }}>
           <summary>잠긴 캐릭터 {CHARACTERS.filter((c) => !c.startsUnlocked).length}명 보기</summary>
           <p className="muted">퀘스트를 클리어하면 하나씩 열려요.</p>
           <div className="grid">
@@ -55,7 +55,7 @@ export function Onboarding({ onStart, notices }: { onStart: (p: { characterId: s
         <div className="grid">
           {STAT_IDS.map((s) => (
             <button key={s} className="pick" aria-pressed={focus.includes(s)} onClick={() => toggle(s)}>
-              <Icon name={s} size={24} /><div><strong>{STAT_NAMES[s]}</strong></div><div className="muted">{STAT_DESC[s]}</div>
+              <Icon name={s} /><div><strong>{STAT_NAMES[s]}</strong></div><div className="muted">{STAT_DESC[s]}</div>
             </button>
           ))}
         </div>

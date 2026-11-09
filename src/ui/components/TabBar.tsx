@@ -10,7 +10,7 @@ export function TabBar<T extends string>({ tabs, current, onSelect }: { tabs: Ta
         <span className="tab-ind" aria-hidden="true" />
         {tabs.map((t) => (
           <button key={t.id} className="tab" aria-current={current === t.id ? 'page' : undefined} onClick={() => onSelect(t.id)}>
-            <Icon name={t.icon} size={22} />
+            <Icon name={t.icon} />
             <span>{t.label}</span>
           </button>
         ))}

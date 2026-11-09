@@ -10,16 +10,16 @@ export function ReportCard({ report, onClose }: { report: PendingReport; onClose
   return (
     <section className="surface report" aria-label="지난주 결산">
       <h2>지난주 결산</h2>
-      <p className="muted">{last.icon} {last.name}</p>
+      <p className="muted row"><Icon name={last.icon} />{last.name}</p>
       <div className="report-rate"><strong>{pct}%</strong><span className="muted">{report.done}/{report.total}개 완료, 전부 완료한 날 {report.fullDays}일</span></div>
-      <div className="meter"><i style={{ width: `${pct}%` }} /></div>
+      <div className="meter"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
       <ul className="report-xp">
         {STAT_IDS.map((s) => (
-          <li key={s}><Icon name={s} size={18} /><span>{STAT_NAMES[s]}</span><strong>+{report.xpByStat[s]}</strong></li>
+          <li key={s}><Icon name={s} /><span>{STAT_NAMES[s]}</span><strong>+{report.xpByStat[s]}</strong></li>
         ))}
       </ul>
       {report.bonusXp > 0 && <p className="muted">주간 보너스 +{report.bonusXp}는 주력 스탯에 나눠 지급됐어요(위 숫자에는 포함되지 않아요).</p>}
-      <p><strong>이번 주는 {next.icon} {next.name}</strong></p>
+      <p className="row"><Icon name={next.icon} /><strong>이번 주는 {next.name}</strong></p>
       <p className="muted">{report.reason}</p>
       <button className="btn" onClick={onClose}>확인</button>
     </section>

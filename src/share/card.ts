@@ -1,5 +1,6 @@
 import { CHARACTERS } from '../data/characters';
 import { COSMETIC_LABELS } from '../data/cosmetics';
+import { composeAvatar } from '../data/sprites';
 import { STAT_IDS, STAT_NAMES } from '../domain/types';
 import { decodeShare, encodeShare, type SharePayload } from './codec';
 
@@ -31,16 +32,16 @@ export function renderCardPng(p: SharePayload): Promise<Blob> {
   g.fillRect(0, 0, 600, 340);
   g.fillStyle = ch.palette[0];
   g.fillRect(0, 0, 600, 8);
-  g.beginPath();
-  g.arc(70, 90, 44, 0, Math.PI * 2);
-  g.fillStyle = ch.palette[0];
-  g.fill();
-  g.fillStyle = '#fff';
-  g.font = 'bold 40px sans-serif';
-  g.textAlign = 'center';
-  g.fillText(ch.name.slice(0, 1), 70, 104);
+  const scale = 6;
+  const avatar = composeAvatar(ch.id, []);
+  g.fillStyle = ch.palette[1] + '40';
+  g.fillRect(22, 44, 16 * scale, 16 * scale);
+  for (const px of avatar.sprite) {
+    g.fillStyle = px.c;
+    g.fillRect(22 + px.x * scale, 44 + px.y * scale, scale, scale);
+  }
   g.textAlign = 'left';
-  g.font = 'bold 28px sans-serif';
+  g.font = '600 28px sans-serif';
   g.fillText(p.nick, 136, 78);
   g.font = '16px sans-serif';
   g.fillStyle = '#a49cc2';
@@ -48,7 +49,7 @@ export function renderCardPng(p: SharePayload): Promise<Blob> {
   STAT_IDS.forEach((s, i) => {
     const y = 170 + i * 30;
     g.fillStyle = STAT_COLORS[s];
-    g.font = 'bold 16px sans-serif';
+    g.font = '600 16px sans-serif';
     g.fillText(`${STAT_NAMES[s]}${p.focus.includes(s) ? ' (주력)' : ''}`, 36, y);
     g.fillStyle = '#2a2540';
     g.fillRect(130, y - 14, 380, 14);

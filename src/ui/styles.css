@@ -86,7 +86,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 
 .topbar { position: sticky; top: 12px; z-index: 20; display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 20px; margin-bottom: 16px; }
-.topbar-avatar { display: grid; border-radius: 50%; overflow: hidden; }
+.topbar-avatar { display: grid; border-radius: 8px; overflow: hidden; }
 .topbar-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 0; background: var(--well); display: grid; place-items: center; transition: transform 150ms var(--ease), background-color 150ms var(--ease); }
 .icon-btn:active, .tab:active { transform: scale(0.97); }
@@ -108,7 +108,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .week[open] summary { margin-bottom: 8px; }
 .week summary .icon, .row .icon { color: var(--ink-3); }
 .hero-compact { display: flex; align-items: center; gap: 16px; padding: 4px 0 16px; }
-.hero-compact svg { border-radius: 50%; flex: none; }
+.hero-compact svg { flex: none; }
 .hero-compact h1 { margin: 0; }
 .quests { margin-bottom: 20px; }
 .stat { margin-bottom: 16px; }

@@ -228,7 +228,7 @@ test('two tabs stay in sync and an old-version tab cannot overwrite the save', a
     delete s.settings; delete s.backup; delete s.reportSeenWeek;
     localStorage.setItem('lifegame:v1', JSON.stringify(s));
   });
-  await expect.poll(() => other.evaluate(() => JSON.parse(localStorage.getItem('lifegame:v1')!).version)).toBe(2);
+  await expect.poll(() => other.evaluate(() => JSON.parse(localStorage.getItem('lifegame:v1')!).version)).toBe(3);
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
   await other.close();
 });
@@ -256,20 +256,36 @@ test('illustrated characters load as images, pixel ones stay vector', async ({ p
 });
 
 
-test('the character\'s look changes as the character level grows', async ({ page }) => {
+test('the character\'s look changes as that character levels up', async ({ page }) => {
   await start(page, WED, '철수', '에버', ['힘', '지력']);
   const portrait = page.getByRole('img', { name: '에버 캐릭터' }).first();
   await expect(portrait).toHaveAttribute('src', /ember-1-portrait/);
-  // five stats at Lv6 -> character level 26 -> second look
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('lifegame:v1')!);
-    s.xp = { str: 634, agi: 634, int: 634, spi: 634, luk: 634 };
+    s.characters = { ember: { xp: 3000 } };   // Lv.27
     localStorage.setItem('lifegame:v1', JSON.stringify(s));
   });
   await page.reload();
   await expect(page.getByRole('img', { name: '에버 캐릭터' }).first()).toHaveAttribute('src', /ember-2-portrait/);
   await page.getByRole('button', { name: '캐릭터' }).click();
   await expect(page.getByRole('img', { name: '에버 전신' })).toHaveAttribute('src', /ember-2-full/);
-  await expect(page.getByText('캐릭터 Lv.26')).toBeVisible();
+  await expect(page.getByText('캐릭터 Lv.27')).toBeVisible();
   await expect(page.getByText(/다음 모습/)).toContainText('Lv.50');
+});
+
+test('each character keeps its own level when you switch on a Monday', async ({ page }) => {
+  await start(page, MON, '철수', '에버', ['힘', '지력']);
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('lifegame:v1')!);
+    s.characters = { ember: { xp: 3000 } };
+    localStorage.setItem('lifegame:v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: '캐릭터' }).click();
+  await expect(page.getByText('Lv.27').first()).toBeVisible();
+  await page.getByRole('button', { name: /카게/ }).click();
+  await page.getByRole('button', { name: '변경 적용' }).click();
+  await expect(page.getByText('캐릭터 Lv.1')).toBeVisible();
+  await expect(page.getByRole('img', { name: '카게 캐릭터' }).first()).toHaveAttribute('src', /shade-1-portrait/);
+  await page.getByRole('button', { name: /에버/ }).click();   // back on the next Monday it would be Lv.27 again
 });

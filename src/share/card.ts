@@ -1,5 +1,4 @@
 import { CHARACTERS, artStage } from '../data/characters';
-import { characterLevelOf } from '../domain/progress';
 import { COSMETIC_LABELS } from '../data/cosmetics';
 import { composeAvatar } from '../data/sprites';
 import { artUrl } from '../ui/artUrl';
@@ -43,7 +42,7 @@ export async function renderCardPng(p: SharePayload): Promise<Blob> {
   g.fillRect(0, 0, 600, 340);
   g.fillStyle = ch.palette[0];
   g.fillRect(0, 0, 600, 8);
-  const art = ch.art ? await loadImage(artUrl(artStage(ch.art, characterLevelOf(p.lv)).portrait)).catch(() => null) : null;
+  const art = ch.art ? await loadImage(artUrl(artStage(ch.art, p.cl).portrait)).catch(() => null) : null;
   if (art) {
     g.fillStyle = '#f4ede1';
     g.fillRect(22, 44, 96, 96);

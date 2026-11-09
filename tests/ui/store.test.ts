@@ -127,3 +127,23 @@ describe('v2 follow-up actions', () => {
     expect(after.swappedOut).toEqual(before.swappedOut);
   });
 });
+
+
+import { levelOfCharacter } from '../../src/domain/characterLevel';
+describe('per-character levels', () => {
+  it('xp goes to the character in use; switching starts the other character at its own level', () => {
+    let s = started(mon);
+    const q = s.weeks[0].days[0].quests[0].questId;
+    s = reducer(s, { type: 'complete', date: '2026-11-09', questId: q });
+    const emberXp = s.characters.ember.xp;
+    expect(emberXp).toBeGreaterThan(0);
+    const out = reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    expect(out.characterId).toBe('shade');
+    expect(out.characters.ember.xp).toBe(emberXp);   // the old character keeps its progress
+    expect(levelOfCharacter(out, 'shade')).toBe(1);   // the new one does not inherit it
+    expect(out.xp).toEqual(s.xp);                     // stats and quest unlocks stay shared
+    const next = reducer(out, { type: 'complete', date: '2026-11-09', questId: out.weeks[0].days[0].quests.find((x) => !x.done)!.questId });
+    expect(next.characters.shade.xp).toBeGreaterThan(0);
+    expect(next.characters.ember.xp).toBe(emberXp);
+  });
+});

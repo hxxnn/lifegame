@@ -74,13 +74,19 @@ describe('completeQuest on a settled week', () => {
   });
 });
 
-import { characterLevel, characterLevelOf } from '../../src/domain/progress';
-describe('character level', () => {
-  it('starts at 1 and adds up the stat levels (sum of the five levels minus 4)', () => {
-    expect(characterLevel(emptyState())).toBe(1);
-    expect(characterLevelOf({ str: 30, agi: 30, int: 30, spi: 30, luk: 30 })).toBe(146);
-    expect(characterLevelOf({ str: 10, agi: 6, int: 6, spi: 4, luk: 3 })).toBe(25);
-    const s = { ...emptyState(), xp: { str: 100, agi: 0, int: 0, spi: 0, luk: 0 } }; // str Lv2
-    expect(characterLevel(s)).toBe(2);
+describe('character xp', () => {
+  it('adds everything the quest earns (including the day bonus) to the active character', () => {
+    let s = stateWith('challenge', [{ date: '2026-11-09', ids: ['s20', 'i20'] }]);
+    s = completeQuest(s, '2026-11-09', 's20', pool);
+    expect(s.characters.c.xp).toBe(32);
+    s = completeQuest(s, '2026-11-09', 'i20', pool);
+    expect(s.characters.c.xp).toBe(32 + 32 + 3 + 3);
+    expect(s.xp.str + s.xp.int).toBe(s.characters.c.xp);
+  });
+  it('does not credit anyone when no character is chosen, and ignores repeated checks', () => {
+    const none = { ...stateWith('calm', [{ date: '2026-11-09', ids: ['s10'] }]), characterId: null, focusStats: null };
+    expect(completeQuest(none, '2026-11-09', 's10', pool).characters).toEqual({});
+    const s = completeQuest(stateWith('calm', [{ date: '2026-11-09', ids: ['s10'] }]), '2026-11-09', 's10', pool);
+    expect(completeQuest(s, '2026-11-09', 's10', pool).characters.c.xp).toBe(10 + 1);
   });
 });

@@ -25,7 +25,7 @@ export interface WeekRecord {
   clearRate: number | null;
 }
 export interface PlayerState {
-  version: 2;
+  version: 3;
   nickname: string;
   characterId: string | null;
   focusStats: [StatId, StatId] | null;
@@ -37,11 +37,13 @@ export interface PlayerState {
   settings: { dayStartHour: number };
   backup: { lastAt: string | null; nudgedAt: string | null };
   reportSeenWeek: string | null;
+  /** 캐릭터마다 쌓인 경험치. 퀘스트로 번 경험치는 지금 고른 캐릭터에게 쌓인다. */
+  characters: Record<string, { xp: number }>;
 }
 
 export function emptyState(): PlayerState {
   return {
-    version: 2,
+    version: 3,
     nickname: '',
     characterId: null,
     focusStats: null,
@@ -53,5 +55,6 @@ export function emptyState(): PlayerState {
     settings: { dayStartHour: 0 },
     backup: { lastAt: null, nudgedAt: null },
     reportSeenWeek: null,
+    characters: {},
   };
 }

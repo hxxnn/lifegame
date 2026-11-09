@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { COSMETIC_LABELS } from '../data/cosmetics';
 import { STORIES } from '../data/stories';
-import { characterLevel, statLevels } from '../domain/progress';
+import { activeCharacterLevel } from '../domain/characterLevel';
+import { statLevels } from '../domain/progress';
 import { CHARACTERS, artStage } from '../data/characters';
 import { pickDisplayDay } from '../domain/rollover';
 import { STAT_IDS, STAT_NAMES } from '../domain/types';
@@ -52,7 +53,7 @@ export function App() {
         msgs.push(`해금: ${COSMETIC_LABELS[id] ?? STORIES[id]?.title ?? id}${id.startsWith('char:') ? ' (월요일에 바꿀 수 있어요)' : id.startsWith('story:') ? ' (새 퀘스트도 열렸어요)' : ''}`);
     }
     const ch = CHARACTERS.find((c) => c.id === state.characterId);
-    const stage = ch?.art ? artStage(ch.art, characterLevel(state)) : null;
+    const stage = ch?.art ? artStage(ch.art, activeCharacterLevel(state)) : null;
     const look = stage ? `${ch!.id}:${stage.level}` : '';
     if (prev.current && stage && prev.current.look && prev.current.look.startsWith(`${ch!.id}:`) && prev.current.look !== look)
       msgs.push(`새로운 모습 해금: ${ch!.name} Lv.${stage.level}`);
@@ -96,7 +97,7 @@ export function App() {
     <>
       {toast && <div className="toast glass" role="status">{toast}</div>}
       <main className="app">
-        <TopBar characterId={state.characterId} nickname={state.nickname} unlockedIds={state.unlockedIds} level={characterLevel(state)} progress={tab === 'home' ? null : progress} theme={theme} onToggleTheme={toggle} />
+        <TopBar characterId={state.characterId} nickname={state.nickname} unlockedIds={state.unlockedIds} level={activeCharacterLevel(state)} progress={tab === 'home' ? null : progress} theme={theme} onToggleTheme={toggle} />
         {notices}
         {tab === 'home' && <Home state={state} todayKey={todayKey} dispatch={dispatch} />}
         {tab === 'character' && <Character state={state} todayKey={todayKey} dispatch={dispatch} />}

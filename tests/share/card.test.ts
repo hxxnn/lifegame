@@ -3,7 +3,7 @@ import { isCompareHash, parseCompareHash, shareUrl } from '../../src/share/card'
 import { latestTitle } from '../../src/data/cosmetics';
 import type { SharePayload } from '../../src/share/codec';
 
-const p: SharePayload = { nick: '철수', char: 'shade', lv: { str: 1, agi: 9, int: 4, spi: 2, luk: 7 }, focus: ['agi', 'luk'], title: 'title:novice', cleared: 12 };
+const p: SharePayload = { nick: '철수', char: 'shade', lv: { str: 1, agi: 9, int: 4, spi: 2, luk: 7 }, focus: ['agi', 'luk'], title: 'title:novice', cleared: 12, cl: 1 };
 
 describe('share links', () => {
   it('shareUrl / parseCompareHash round-trip', () => {

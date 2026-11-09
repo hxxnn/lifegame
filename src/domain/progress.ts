@@ -46,14 +46,9 @@ export function completeQuest(state: PlayerState, date: string, questId: string,
   }
 
   const weeks = state.weeks.map((w, i) => (i === weekIdx ? { ...w, days, weeklyBonus } : w));
-  return { ...state, xp, weeks, totalCleared: state.totalCleared + 1 };
-}
-
-/** 캐릭터 레벨: 다섯 스탯 레벨의 합에서 4를 뺀 값. 막 시작하면 Lv.1, 모두 30이면 Lv.146. */
-export function characterLevelOf(levels: Record<StatId, number>): number {
-  return STAT_IDS.reduce((sum, s) => sum + levels[s], 0) - (STAT_IDS.length - 1);
-}
-
-export function characterLevel(state: PlayerState): number {
-  return characterLevelOf(statLevels(state));
+  // 번 경험치(보너스 포함)는 지금 고른 캐릭터에게도 쌓인다
+  const gained = STAT_IDS.reduce((sum, k) => sum + xp[k] - state.xp[k], 0);
+  const id = state.characterId;
+  const characters = id && gained > 0 ? { ...state.characters, [id]: { xp: (state.characters[id]?.xp ?? 0) + gained } } : state.characters;
+  return { ...state, xp, weeks, characters, totalCleared: state.totalCleared + 1 };
 }

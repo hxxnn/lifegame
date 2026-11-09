@@ -1,6 +1,7 @@
 import { BALANCE } from '../data/balance';
 import { CHARACTERS } from '../data/characters';
 import { COSMETIC_LABELS } from '../data/cosmetics';
+import { activeCharacterLevel, CHAR_MAX_LEVEL } from '../domain/characterLevel';
 import { STAT_IDS, type PlayerState, type StatId } from '../domain/types';
 
 export interface SharePayload {
@@ -10,6 +11,8 @@ export interface SharePayload {
   focus: [StatId, StatId];
   title: string | null;
   cleared: number;
+  /** 이 캐릭터의 레벨 (1~99) */
+  cl: number;
 }
 
 const MAX_INPUT = 2000;
@@ -35,6 +38,7 @@ export function buildPayload(state: PlayerState, levels: Record<StatId, number>,
     focus: state.focusStats ?? ['str', 'int'],
     title,
     cleared: state.totalCleared,
+    cl: activeCharacterLevel(state),
   };
 }
 
@@ -45,7 +49,7 @@ function toBase64Url(bytes: Uint8Array): string {
 }
 
 export function encodeShare(p: SharePayload): string {
-  const arr = [1, p.nick, p.char, STAT_IDS.map((s) => p.lv[s]), p.focus.map((s) => STAT_IDS.indexOf(s)), p.title, p.cleared];
+  const arr = [1, p.nick, p.char, STAT_IDS.map((s) => p.lv[s]), p.focus.map((s) => STAT_IDS.indexOf(s)), p.title, p.cleared, p.cl];
   return toBase64Url(new TextEncoder().encode(JSON.stringify(arr)));
 }
 
@@ -56,8 +60,10 @@ export function decodeShare(s: string): SharePayload | null {
     const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
     const text = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
     const a: unknown = JSON.parse(text);
-    if (!Array.isArray(a) || a.length !== 7 || a[0] !== 1) return null;
-    const [, nick, char, lvs, foc, title, cleared] = a as [number, unknown, unknown, unknown, unknown, unknown, unknown];
+    if (!Array.isArray(a) || (a.length !== 7 && a.length !== 8) || a[0] !== 1) return null;
+    const [, nick, char, lvs, foc, title, cleared, clRaw] = a as [number, unknown, unknown, unknown, unknown, unknown, unknown, unknown];
+    const cl = a.length === 8 ? clRaw : 1; // 캐릭터 레벨이 생기기 전에 만든 링크는 Lv.1로 본다
+    if (!Number.isInteger(cl) || (cl as number) < 1 || (cl as number) > CHAR_MAX_LEVEL) return null;
     if (typeof nick !== 'string' || typeof char !== 'string' || !CHARACTERS.some((c) => c.id === char)) return null;
     if (!Array.isArray(lvs) || lvs.length !== STAT_IDS.length) return null;
     if (!lvs.every((v) => Number.isInteger(v) && v >= 1 && v <= BALANCE.maxLevel)) return null;
@@ -68,7 +74,7 @@ export function decodeShare(s: string): SharePayload | null {
     const lv = {} as Record<StatId, number>;
     STAT_IDS.forEach((st, i) => (lv[st] = lvs[i] as number));
     const okTitle = typeof title === 'string' && title.startsWith('title:') && title in COSMETIC_LABELS ? title : null;
-    return { nick: sanitizeNick(nick), char, lv, focus: focus as [StatId, StatId], title: okTitle, cleared: cleared as number };
+    return { nick: sanitizeNick(nick), char, lv, focus: focus as [StatId, StatId], title: okTitle, cleared: cleared as number, cl: cl as number };
   } catch {
     return null;
   }

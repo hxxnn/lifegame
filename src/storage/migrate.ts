@@ -1,4 +1,6 @@
 import { CHARACTERS } from '../data/characters';
+import { CHAR_MAX_LEVEL, charXpForLevel } from '../domain/characterLevel';
+import { levelFromXp } from '../domain/leveling';
 import { STAT_IDS, type PlayerState, type StatId } from '../domain/types';
 
 const THEMES = ['calm', 'normal', 'challenge', 'hell'];
@@ -15,13 +17,32 @@ function previousWeekId(weeks: unknown): string | null {
   return prev && typeof prev.weekId === 'string' ? prev.weekId : null;
 }
 
-/** Validates untrusted data and returns a PlayerState, or null when it is not a valid v1 save. */
+/** v2 -> v3: 지금까지의 진행(스탯 레벨 합으로 계산하던 캐릭터 레벨)을 지금 고른 캐릭터에게 그대로 넘긴다. */
+function charactersFromStats(raw: Record<string, unknown>): Record<string, { xp: number }> {
+  const id = raw.characterId;
+  if (typeof id !== 'string' || !isObj(raw.xp)) return {};
+  let sum = 0;
+  for (const s of STAT_IDS) {
+    const v = raw.xp[s];
+    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return {};
+    sum += levelFromXp(v).level;
+  }
+  const oldLevel = Math.min(CHAR_MAX_LEVEL, Math.max(1, sum - (STAT_IDS.length - 1)));
+  return { [id]: { xp: charXpForLevel(oldLevel) } };
+}
+
+/** Validates untrusted data (v1, v2 or v3) and returns an up-to-date PlayerState, or null when it is not a valid save. */
 export function migrate(input: unknown): PlayerState | null {
-  if (!isObj(input) || (input.version !== 1 && input.version !== 2)) return null;
+  if (!isObj(input) || (input.version !== 1 && input.version !== 2 && input.version !== 3)) return null;
+  let raw: Record<string, unknown> = input;
   // v1 -> v2: add the new fields with defaults
-  const raw: Record<string, unknown> = input.version === 1
-    ? { ...input, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: previousWeekId(input.weeks) }
-    : input;
+  if (raw.version === 1) raw = { ...raw, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: previousWeekId(raw.weeks) };
+  // v2 -> v3: per-character progress
+  if (raw.version === 2) raw = { ...raw, version: 3, characters: charactersFromStats(raw) };
+  if (!isObj(raw.characters)) return null;
+  for (const [id, v] of Object.entries(raw.characters)) {
+    if (!CHARACTERS.some((c) => c.id === id) || !isObj(v) || typeof v.xp !== 'number' || !Number.isFinite(v.xp) || v.xp < 0 || v.xp > 1e9) return null;
+  }
   if (!isObj(raw.settings) || !Number.isInteger(raw.settings.dayStartHour) || (raw.settings.dayStartHour as number) < 0 || (raw.settings.dayStartHour as number) > 6) return null;
   if (!isObj(raw.backup) || (raw.backup.lastAt !== null && !isDate(raw.backup.lastAt)) || (raw.backup.nudgedAt !== null && !isDate(raw.backup.nudgedAt))) return null;
   if (raw.reportSeenWeek !== null && !isDate(raw.reportSeenWeek)) return null;

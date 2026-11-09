@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CHARACTERS, artStage } from '../../data/characters';
-import { characterLevel } from '../../domain/progress';
+import { activeCharacterLevel, charLevelProgress, levelOfCharacter } from '../../domain/characterLevel';
 import { addDays, weekIdOf } from '../../domain/dates';
 import { STAT_IDS, STAT_NAMES, type PlayerState, type StatId } from '../../domain/types';
 import { CharacterAvatar } from '../components/CharacterAvatar';
@@ -17,7 +17,8 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
   const [focus, setFocus] = useState<StatId[]>(state.focusStats ?? []);
   const toggle = (s: StatId) => setFocus((f) => (f.includes(s) ? f.filter((x) => x !== s) : f.length < 2 ? [...f, s] : f));
   const nextMonday = addDays(weekIdOf(todayKey), 7);
-  const level = characterLevel(state);
+  const level = activeCharacterLevel(state);
+  const progress = charLevelProgress(state.characters[current.id]?.xp ?? 0);
   const stage = current.art ? artStage(current.art, level) : null;
   const nextStage = current.art?.stages.find((st) => st.level > level) ?? null;
 
@@ -29,6 +30,10 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
           <h1>{current.name}</h1>
           <p className="muted">{current.tagline}</p>
           <p><strong>캐릭터 Lv.{level}</strong></p>
+          <div className="meter" role="progressbar" aria-label="다음 레벨까지" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.need === null ? 100 : Math.round((progress.into / progress.need) * 100)}>
+            <i style={{ transform: `scaleX(${progress.need === null ? 1 : progress.into / progress.need})` }} />
+          </div>
+          <p className="muted">{progress.need === null ? '최고 레벨이에요' : `다음 레벨까지 ${progress.need - progress.into} XP`}</p>
           <p className="muted">주력 스탯: {state.focusStats?.map((s) => STAT_NAMES[s]).join(', ')}</p>
         </div>
       </section>
@@ -59,13 +64,16 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
       <section className="surface">
         <h2>캐릭터·주력 스탯 변경</h2>
         {!editable ? (
-          <p className="muted">변경은 월요일에만 할 수 있어요. 다음 변경 가능일: {nextMonday}</p>
+          <>
+            <p className="muted">변경은 월요일에만 할 수 있어요. 다음 변경 가능일: {nextMonday}</p>
+            <p className="muted">캐릭터마다 자기 레벨이 있어서, 다른 캐릭터로 바꾸면 그 캐릭터의 레벨에서 이어져요.</p>
+          </>
         ) : (
           <>
             <div className="grid" style={{ marginBottom: 12 }}>
               {CHARACTERS.map((c) => (
                 <button key={c.id} className="pick" aria-pressed={characterId === c.id} disabled={!isCharacterUnlocked(state, c.id)} onClick={() => setCharacterId(c.id)}>
-                  <CharacterAvatar id={c.id} size={56} /><div><strong>{c.name}</strong></div>
+                  <CharacterAvatar id={c.id} size={56} level={levelOfCharacter(state, c.id)} /><div><strong>{c.name}</strong></div><div className="muted">Lv.{levelOfCharacter(state, c.id)}</div>
                   {!isCharacterUnlocked(state, c.id) && <Icon name="lock" />}
                 </button>
               ))}

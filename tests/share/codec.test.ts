@@ -4,7 +4,7 @@ import { emptyState } from '../../src/domain/types';
 
 const payload = (over: Partial<SharePayload> = {}): SharePayload => ({
   nick: '모험가', char: 'ember', lv: { str: 5, agi: 3, int: 12, spi: 1, luk: 30 },
-  focus: ['str', 'int'], title: 'title:novice', cleared: 42, ...over,
+  focus: ['str', 'int'], title: 'title:novice', cleared: 42, cl: 26, ...over,
 });
 
 describe('share codec', () => {
@@ -43,7 +43,7 @@ describe('share codec', () => {
   });
   it('buildPayload reads nickname, character and clear count from the state', () => {
     const state = { ...emptyState(), nickname: '철수', characterId: 'shade', focusStats: ['agi', 'luk'] as ['agi', 'luk'], totalCleared: 9 };
-    expect(buildPayload(state, payload().lv, null)).toEqual({ nick: '철수', char: 'shade', lv: payload().lv, focus: ['agi', 'luk'], title: null, cleared: 9 });
+    expect(buildPayload({ ...state, characters: { shade: { xp: 2374 } } }, payload().lv, null)).toEqual({ nick: '철수', char: 'shade', lv: payload().lv, focus: ['agi', 'luk'], title: null, cleared: 9, cl: 25 });
   });
 });
 
@@ -51,5 +51,19 @@ describe('share link bounds', () => {
   it('rejects an absurd clear count', () => {
     expect(decodeShare(encodeShare(payload({ cleared: 1_000_001 })))).toBeNull();
     expect(decodeShare(encodeShare(payload({ cleared: 1_000_000 })))).not.toBeNull();
+  });
+});
+
+
+describe('share link character level', () => {
+  const b64 = (arr: unknown[]) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(arr)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  it('still opens links made before character levels existed (treated as Lv.1)', () => {
+    const old = b64([1, '철수', 'ember', [1, 1, 1, 1, 1], [0, 1], null, 3]);
+    expect(decodeShare(old)!.cl).toBe(1);
+  });
+  it('rejects a character level outside 1..99', () => {
+    expect(decodeShare(encodeShare(payload({ cl: 0 })))).toBeNull();
+    expect(decodeShare(encodeShare(payload({ cl: 100 })))).toBeNull();
+    expect(decodeShare(encodeShare(payload({ cl: 99 })))!.cl).toBe(99);
   });
 });

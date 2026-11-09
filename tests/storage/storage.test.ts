@@ -95,11 +95,15 @@ describe('migrate / export / import', () => {
     expect(migrate(s)).toBeNull();
     expect(migrate({ ...emptyState() })).not.toBeNull();
   });
-  it('upgrades a v1 save to v2 with default settings', () => {
-    const { settings, backup, reportSeenWeek, ...rest } = sample();
-    void settings; void backup; void reportSeenWeek;
-    const up = migrate({ ...rest, version: 1 });
-    expect(up).toEqual({ ...rest, version: 2, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: null });
+  it('upgrades a v1 save to the current version with default settings', () => {
+    const { settings, backup, reportSeenWeek, characters, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek; void characters;
+    const up = migrate({ ...rest, version: 1 })!;
+    expect(up.version).toBe(3);
+    expect(up.settings).toEqual({ dayStartHour: 0 });
+    expect(up.backup).toEqual({ lastAt: null, nudgedAt: null });
+    expect(up.reportSeenWeek).toBeNull();
+    expect(Object.keys(up.characters)).toEqual(['ember']); // the character in use keeps its progress
   });
   it('validates the v2 fields', () => {
     expect(migrate({ ...sample(), settings: { dayStartHour: 7 } })).toBeNull();
@@ -127,8 +131,8 @@ describe('v2 follow-ups', () => {
     expect(sample().backup.lastAt).toBeNull(); // input untouched
   });
   it('a v1 upgrade with history does not replay last week\'s report', () => {
-    const { settings, backup, reportSeenWeek, ...rest } = sample();
-    void settings; void backup; void reportSeenWeek;
+    const { settings, backup, reportSeenWeek, characters, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek; void characters;
     const w = rest.weeks[0];
     const two = [{ ...w, weekId: '2026-11-02' }, { ...w, weekId: '2026-11-09' }];
     expect(migrate({ ...rest, version: 1, weeks: two })!.reportSeenWeek).toBe('2026-11-02');
@@ -143,10 +147,41 @@ describe('v2 follow-ups', () => {
   });
   it('parseExternalSave only accepts valid v2 data written by another tab', () => {
     expect(parseExternalSave(JSON.stringify(sample()))).toEqual(sample());
-    const { settings, backup, reportSeenWeek, ...rest } = sample();
-    void settings; void backup; void reportSeenWeek;
+    const { settings, backup, reportSeenWeek, characters, ...rest } = sample();
+    void settings; void backup; void reportSeenWeek; void characters;
     expect(parseExternalSave(JSON.stringify({ ...rest, version: 1 }))).toBeNull(); // an old tab wrote it: ignore
+    expect(parseExternalSave(JSON.stringify({ ...rest, settings: { dayStartHour: 0 }, backup: { lastAt: null, nudgedAt: null }, reportSeenWeek: null, version: 2 }))).toBeNull(); // so did a v2 tab
     expect(parseExternalSave('{broken')).toBeNull();
     expect(parseExternalSave(null)).toBeNull();
+  });
+});
+
+import { charLevelFromXp, charXpForLevel } from '../../src/domain/characterLevel';
+describe('v3: per-character progress', () => {
+  const v2 = (over: Record<string, unknown> = {}) => {
+    const { characters, ...rest } = sample();
+    void characters;
+    return { ...rest, version: 2, ...over };
+  };
+  it('moves the existing progress onto the character in use, keeping the same character level', () => {
+    // all five stats at Lv.6 = the old character level 26
+    const out = migrate(v2({ xp: { str: 634, agi: 634, int: 634, spi: 634, luk: 634 }, characterId: 'lumi' }))!;
+    expect(out.version).toBe(3);
+    expect(charLevelFromXp(out.characters.lumi.xp)).toBe(26);
+    expect(out.characters.ember).toBeUndefined();
+  });
+  it('caps an old character level above 99 at Lv.99 and handles a save with no character yet', () => {
+    const huge = migrate(v2({ xp: { str: 1e7, agi: 1e7, int: 1e7, spi: 1e7, luk: 1e7 } }))!;
+    expect(huge.characters.ember.xp).toBe(charXpForLevel(99));
+    const none = migrate(v2({ characterId: null, focusStats: null }))!;
+    expect(none.characters).toEqual({});
+  });
+  it('validates the characters map', () => {
+    expect(migrate({ ...sample(), characters: { ember: { xp: -1 } } })).toBeNull();
+    expect(migrate({ ...sample(), characters: { ember: { xp: Number.NaN } } })).toBeNull();
+    expect(migrate({ ...sample(), characters: { ember: 5 } })).toBeNull();
+    expect(migrate({ ...sample(), characters: [] })).toBeNull();
+    expect(migrate({ ...sample(), characters: { nobody: { xp: 5 } } })).toBeNull();
+    expect(migrate({ ...sample(), characters: { ember: { xp: 120 } } })).not.toBeNull();
   });
 });

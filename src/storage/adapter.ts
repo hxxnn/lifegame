@@ -67,12 +67,12 @@ export function createLocalAdapter(storage: Storage | undefined = defaultStorage
   };
 }
 
-/** 다른 탭이 쓴 저장 데이터. 유효한 v2만 받는다(이전 버전 탭이 덮어쓴 v1은 무시). */
+/** 다른 탭이 쓴 저장 데이터. 현재 버전(v3)만 받는다(이전 버전 탭이 덮어쓴 데이터는 무시). */
 export function parseExternalSave(raw: string | null): PlayerState | null {
   if (!raw) return null;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== 2) return null;
+    if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== 3) return null;
     return migrate(parsed);
   } catch {
     return null;

@@ -8,11 +8,11 @@ import { Icon } from '../components/Icons';
 import { History } from '../components/History';
 import { artUrl } from '../artUrl';
 import { StatBar } from '../components/StatBar';
-import { canChangeProfile, isCharacterUnlocked, type Action } from '../store';
+import { canChangeFocus, isCharacterUnlocked, type Action } from '../store';
 
 export function Character({ state, todayKey, dispatch }: { state: PlayerState; todayKey: string; dispatch: (a: Action) => void }) {
   const current = CHARACTERS.find((c) => c.id === state.characterId) ?? CHARACTERS[0];
-  const editable = canChangeProfile(state, todayKey);
+  const focusEditable = canChangeFocus(state, todayKey);
   const [characterId, setCharacterId] = useState(current.id);
   const [focus, setFocus] = useState<StatId[]>(state.focusStats ?? []);
   const toggle = (s: StatId) => setFocus((f) => (f.includes(s) ? f.filter((x) => x !== s) : f.length < 2 ? [...f, s] : f));
@@ -62,29 +62,33 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
         {STAT_IDS.map((s) => <StatBar key={s} stat={s} xp={state.xp[s]} focus={state.focusStats?.includes(s)} />)}
       </section>
       <section className="surface">
-        <h2>캐릭터·주력 스탯 변경</h2>
-        {!editable ? (
-          <>
-            <p className="muted">변경은 월요일에만 할 수 있어요. 다음 변경 가능일: {nextMonday}</p>
-            <p className="muted">캐릭터마다 자기 레벨이 있어서, 다른 캐릭터로 바꾸면 그 캐릭터의 레벨에서 이어져요.</p>
-          </>
+        <h2>캐릭터 변경</h2>
+        <p className="muted">언제든 바꿀 수 있어요. 캐릭터마다 레벨이 따로 쌓이니, 바꾸면 그 캐릭터의 레벨에서 이어져요.</p>
+        <div className="grid" style={{ marginBottom: 12 }}>
+          {CHARACTERS.map((c) => (
+            <button key={c.id} className="pick" aria-pressed={characterId === c.id} disabled={!isCharacterUnlocked(state, c.id)} onClick={() => setCharacterId(c.id)}>
+              <CharacterAvatar id={c.id} size={56} level={levelOfCharacter(state, c.id)} /><div><strong>{c.name}</strong></div><div className="muted">Lv.{levelOfCharacter(state, c.id)}</div>
+              {!isCharacterUnlocked(state, c.id) && <Icon name="lock" />}
+            </button>
+          ))}
+        </div>
+        <button className="btn" disabled={characterId === current.id} onClick={() => dispatch({ type: 'changeCharacter', characterId })}>
+          이 캐릭터로 바꾸기
+        </button>
+      </section>
+      <section className="surface">
+        <h2>주력 스탯 변경</h2>
+        {!focusEditable ? (
+          <p className="muted">주력 스탯은 월요일에만 바꿀 수 있어요. 다음 변경 가능일: {nextMonday}</p>
         ) : (
           <>
-            <div className="grid" style={{ marginBottom: 12 }}>
-              {CHARACTERS.map((c) => (
-                <button key={c.id} className="pick" aria-pressed={characterId === c.id} disabled={!isCharacterUnlocked(state, c.id)} onClick={() => setCharacterId(c.id)}>
-                  <CharacterAvatar id={c.id} size={56} level={levelOfCharacter(state, c.id)} /><div><strong>{c.name}</strong></div><div className="muted">Lv.{levelOfCharacter(state, c.id)}</div>
-                  {!isCharacterUnlocked(state, c.id) && <Icon name="lock" />}
-                </button>
-              ))}
-            </div>
             <div className="grid" style={{ marginBottom: 12 }}>
               {STAT_IDS.map((s) => (
                 <button key={s} className="pick" aria-pressed={focus.includes(s)} onClick={() => toggle(s)}><Icon name={s} size={24} /><div><strong>{STAT_NAMES[s]}</strong></div></button>
               ))}
             </div>
-            <button className="btn" disabled={focus.length !== 2} onClick={() => dispatch({ type: 'changeProfile', characterId, focus: focus as [StatId, StatId], now: new Date() })}>
-              변경 적용
+            <button className="btn" disabled={focus.length !== 2} onClick={() => dispatch({ type: 'changeFocus', focus: focus as [StatId, StatId], now: new Date() })}>
+              주력 스탯 바꾸기
             </button>
           </>
         )}

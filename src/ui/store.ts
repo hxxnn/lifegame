@@ -16,7 +16,8 @@ export type Action =
   | { type: 'init'; now: Date }
   | { type: 'onboard'; characterId: string; focus: [StatId, StatId]; nickname: string }
   | { type: 'complete'; date: string; questId: string }
-  | { type: 'changeProfile'; characterId: string; focus: [StatId, StatId]; now: Date }
+  | { type: 'changeCharacter'; characterId: string }
+  | { type: 'changeFocus'; focus: [StatId, StatId]; now: Date }
   | { type: 'setNickname'; nickname: string }
   | { type: 'import'; state: PlayerState; now: Date }
   | { type: 'swap'; date: string; questId: string }
@@ -31,7 +32,8 @@ export function isCharacterUnlocked(state: PlayerState, id: string): boolean {
   return !!c && (c.startsUnlocked || state.unlockedIds.includes(`char:${id}`));
 }
 
-export function canChangeProfile(state: PlayerState, today: string): boolean {
+/** 주력 스탯은 월요일에만 바꿀 수 있다(처음 고를 때는 언제든). 캐릭터는 요일과 상관없이 바꿀 수 있다. */
+export function canChangeFocus(state: PlayerState, today: string): boolean {
   return state.characterId === null || isMonday(today);
 }
 
@@ -48,10 +50,14 @@ export function reducer(state: PlayerState, action: Action): PlayerState {
     }
     case 'complete':
       return completeAndUnlock(state, action.date, action.questId, QUEST_POOL, COSMETIC_SEQUENCE);
-    case 'changeProfile': {
+    case 'changeCharacter':
+      // 캐릭터마다 자기 레벨이 따로 있으니 언제든 바꿀 수 있다. 퀘스트와 스탯은 건드리지 않는다.
+      if (state.characterId === null || action.characterId === state.characterId || !isCharacterUnlocked(state, action.characterId)) return state;
+      return { ...state, characterId: action.characterId };
+    case 'changeFocus': {
       const today = effectiveToday(state, action.now);
-      if (!canChangeProfile(state, today) || !isCharacterUnlocked(state, action.characterId) || !validFocus(action.focus)) return state;
-      let next: PlayerState = { ...state, characterId: action.characterId, focusStats: action.focus };
+      if (!canChangeFocus(state, today) || !validFocus(action.focus)) return state;
+      let next: PlayerState = { ...state, focusStats: action.focus };
       const week = next.weeks.at(-1);
       const day = week?.days.at(-1);
       if (week && day && day.date === today && day.quests.every((q) => !q.done)) {

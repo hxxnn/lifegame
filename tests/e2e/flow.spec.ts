@@ -68,15 +68,21 @@ test('weekend shows 7 quests', async ({ page }) => {
   await expect(page.locator('.quest')).toHaveCount(7);
 });
 
-test('profile change is blocked midweek and allowed on Monday', async ({ page }) => {
+test('the character can be switched on any day, the focus stats only on Monday', async ({ page }) => {
   await start(page, WED);
   await page.getByRole('button', { name: '캐릭터' }).click();
-  await expect(page.getByText('변경은 월요일에만 할 수 있어요')).toBeVisible();
+  await expect(page.getByText('주력 스탯은 월요일에만 바꿀 수 있어요')).toBeVisible();
+  await expect(page.getByRole('button', { name: '주력 스탯 바꾸기' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '이 캐릭터로 바꾸기' })).toBeDisabled();   // nothing else selected yet
+  await page.getByRole('button', { name: /루미/ }).click();
+  await page.getByRole('button', { name: '이 캐릭터로 바꾸기' }).click();
+  await expect(page.getByText('캐릭터 Lv.1')).toBeVisible();
+  await expect(page.getByRole('img', { name: '루미 캐릭터' }).first()).toBeVisible();
   await page.clock.setSystemTime(MON);
   await page.reload();
   await expect(page.locator('.quest').first()).toBeVisible();
   await page.getByRole('button', { name: '캐릭터' }).click();
-  await expect(page.getByRole('button', { name: '변경 적용' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '주력 스탯 바꾸기' })).toBeVisible();
 });
 
 test('share link opens a side-by-side comparison; broken links show an error', async ({ page, browser }) => {
@@ -273,8 +279,8 @@ test('the character\'s look changes as that character levels up', async ({ page 
   await expect(page.getByText(/다음 모습/)).toContainText('Lv.50');
 });
 
-test('each character keeps its own level when you switch on a Monday', async ({ page }) => {
-  await start(page, MON, '철수', '에버', ['힘', '지력']);
+test('each character keeps its own level when you switch', async ({ page }) => {
+  await start(page, WED, '철수', '에버', ['힘', '지력']);
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('lifegame:v1')!);
     s.characters = { ember: { xp: 3000 } };
@@ -284,8 +290,10 @@ test('each character keeps its own level when you switch on a Monday', async ({ 
   await page.getByRole('button', { name: '캐릭터' }).click();
   await expect(page.getByText('Lv.27').first()).toBeVisible();
   await page.getByRole('button', { name: /카게/ }).click();
-  await page.getByRole('button', { name: '변경 적용' }).click();
+  await page.getByRole('button', { name: '이 캐릭터로 바꾸기' }).click();
   await expect(page.getByText('캐릭터 Lv.1')).toBeVisible();
   await expect(page.getByRole('img', { name: '카게 캐릭터' }).first()).toHaveAttribute('src', /shade-1-portrait/);
-  await page.getByRole('button', { name: /에버/ }).click();   // back on the next Monday it would be Lv.27 again
+  await page.getByRole('button', { name: /에버/ }).click();
+  await page.getByRole('button', { name: '이 캐릭터로 바꾸기' }).click();
+  await expect(page.getByText('캐릭터 Lv.27')).toBeVisible();   // Ember is still where we left her
 });

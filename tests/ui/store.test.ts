@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canChangeProfile, reducer } from '../../src/ui/store';
+import { canChangeFocus, reducer } from '../../src/ui/store';
 import { emptyState, type PlayerState } from '../../src/domain/types';
 import { QUEST_BY_ID } from '../../src/data/questPool';
 
@@ -26,33 +26,55 @@ describe('store reducer', () => {
     const ok = reducer(emptyState(), { type: 'onboard', characterId: 'ember', focus: ['str', 'int'], nickname: '\u0000' + 'x'.repeat(40) });
     expect(ok.nickname).toBe('x'.repeat(20));
   });
-  it('canChangeProfile: free before onboarding, Monday-only afterwards', () => {
-    expect(canChangeProfile(emptyState(), '2026-11-11')).toBe(true);
-    expect(canChangeProfile(started(wed), '2026-11-11')).toBe(false);
-    expect(canChangeProfile(started(mon), '2026-11-09')).toBe(true);
+  it('canChangeFocus: free before onboarding, Monday-only afterwards', () => {
+    expect(canChangeFocus(emptyState(), '2026-11-11')).toBe(true);
+    expect(canChangeFocus(started(wed), '2026-11-11')).toBe(false);
+    expect(canChangeFocus(started(mon), '2026-11-09')).toBe(true);
   });
-  it('changeProfile is ignored on a non-Monday and applied on Monday', () => {
+  it('changeFocus is ignored on a non-Monday and applied on Monday (the character stays)', () => {
     const w = started(wed);
-    expect(reducer(w, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: wed })).toBe(w);
+    expect(reducer(w, { type: 'changeFocus', focus: ['agi', 'luk'], now: wed })).toBe(w);
     const m = started(mon);
-    const out = reducer(m, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
-    expect(out.characterId).toBe('shade');
+    const out = reducer(m, { type: 'changeFocus', focus: ['agi', 'luk'], now: mon });
     expect(out.focusStats).toEqual(['agi', 'luk']);
+    expect(out.characterId).toBe('ember');
   });
-  it('Monday change re-rolls today\'s quests only when nothing is completed yet', () => {
+  it('a Monday focus change re-rolls today\'s quests only when nothing is completed yet', () => {
     const m = started(mon);
-    const fresh = reducer(m, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    const fresh = reducer(m, { type: 'changeFocus', focus: ['agi', 'luk'], now: mon });
     expect(fresh.weeks[0].days[0].quests.length).toBe(5);
     expect(fresh.weeks[0].days[0].date).toBe('2026-11-09');
     const qid = m.weeks[0].days[0].quests[0].questId;
     const done = reducer(m, { type: 'complete', date: '2026-11-09', questId: qid });
-    const kept = reducer(done, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    const kept = reducer(done, { type: 'changeFocus', focus: ['agi', 'luk'], now: mon });
     expect(kept.weeks[0].days[0].quests).toEqual(done.weeks[0].days[0].quests);
     expect(kept.focusStats).toEqual(['agi', 'luk']);
   });
-  it('changeProfile rejects locked characters', () => {
+  it('changeFocus rejects the same stat twice and unknown stats', () => {
     const m = started(mon);
-    expect(reducer(m, { type: 'changeProfile', characterId: 'fang', focus: ['str', 'int'], now: mon })).toBe(m);
+    expect(reducer(m, { type: 'changeFocus', focus: ['str', 'str'], now: mon })).toBe(m);
+    expect(reducer(m, { type: 'changeFocus', focus: ['str', 'xx' as never], now: mon })).toBe(m);
+  });
+  it('changeCharacter works on any day and touches nothing but the character', () => {
+    const w = started(wed);
+    const out = reducer(w, { type: 'changeCharacter', characterId: 'shade' });
+    expect(out.characterId).toBe('shade');
+    expect(out.focusStats).toBe(w.focusStats);
+    expect(out.weeks).toBe(w.weeks);
+    expect(out.xp).toBe(w.xp);
+    const sat = started(new Date(2026, 10, 14, 12));
+    expect(reducer(sat, { type: 'changeCharacter', characterId: 'lumi' }).characterId).toBe('lumi');
+  });
+  it('changeCharacter rejects locked, unknown and unchanged characters, and does nothing before onboarding', () => {
+    const w = started(wed);
+    expect(reducer(w, { type: 'changeCharacter', characterId: 'fang' })).toBe(w);
+    expect(reducer(w, { type: 'changeCharacter', characterId: 'nobody' })).toBe(w);
+    expect(reducer(w, { type: 'changeCharacter', characterId: 'ember' })).toBe(w);
+    expect(reducer(emptyState(), { type: 'changeCharacter', characterId: 'shade' }).characterId).toBeNull();
+  });
+  it('a character unlocked by the cosmetic sequence can be picked straight away', () => {
+    const w = { ...started(wed), unlockedIds: ['char:sky'] };
+    expect(reducer(w, { type: 'changeCharacter', characterId: 'sky' }).characterId).toBe('sky');
   });
   it('complete applies xp and unlock rules', () => {
     const s = started(wed);
@@ -100,12 +122,12 @@ describe('v2 actions', () => {
     expect(reducer(s, { type: 'setDayStart', hour: 9 })).toBe(s);
     expect(reducer(s, { type: 'setDayStart', hour: 2.5 })).toBe(s);
   });
-  it('profile change follows the logical date (Monday 02:00 with a 4am start is still Sunday)', () => {
+  it('focus change follows the logical date (Monday 02:00 with a 4am start is still Sunday)', () => {
     const s = { ...started(new Date(2026, 10, 8, 12)), settings: { dayStartHour: 4 } };
     const early = new Date(2026, 10, 9, 2, 0);
-    expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: early })).toBe(s);
+    expect(reducer(s, { type: 'changeFocus', focus: ['agi', 'luk'], now: early })).toBe(s);
     const later = new Date(2026, 10, 9, 5, 0);
-    expect(reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: later }).characterId).toBe('shade');
+    expect(reducer(s, { type: 'changeFocus', focus: ['agi', 'luk'], now: later }).focusStats).toEqual(['agi', 'luk']);
   });
 });
 
@@ -116,12 +138,12 @@ describe('v2 follow-up actions', () => {
     s = reducer(s, { type: 'init', now: new Date(2026, 10, 16, 12) });
     expect(reducer(s, { type: 'dismissReport', weekId: '2026-11-02' }).reportSeenWeek).toBe('2026-11-02');
   });
-  it('a Monday profile change keeps the swap counter and history of today', () => {
+  it('a Monday focus change keeps the swap counter and history of today', () => {
     let s = started(mon);
     const target = s.weeks[0].days[0].quests.find((q) => !QUEST_BY_ID[q.questId].fixed)!.questId;
     s = reducer(s, { type: 'swap', date: '2026-11-09', questId: target });
     const before = s.weeks[0].days[0];
-    const out = reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    const out = reducer(s, { type: 'changeFocus', focus: ['agi', 'luk'], now: mon });
     const after = out.weeks[0].days[0];
     expect(after.swaps).toBe(before.swaps);
     expect(after.swappedOut).toEqual(before.swappedOut);
@@ -132,17 +154,17 @@ describe('v2 follow-up actions', () => {
 import { levelOfCharacter } from '../../src/domain/characterLevel';
 describe('per-character levels', () => {
   it('xp goes to the character in use; switching starts the other character at its own level', () => {
-    let s = started(mon);
+    let s = started(wed);
     const q = s.weeks[0].days[0].quests[0].questId;
-    s = reducer(s, { type: 'complete', date: '2026-11-09', questId: q });
+    s = reducer(s, { type: 'complete', date: '2026-11-11', questId: q });
     const emberXp = s.characters.ember.xp;
     expect(emberXp).toBeGreaterThan(0);
-    const out = reducer(s, { type: 'changeProfile', characterId: 'shade', focus: ['agi', 'luk'], now: mon });
+    const out = reducer(s, { type: 'changeCharacter', characterId: 'shade' });   // any day, not just Monday
     expect(out.characterId).toBe('shade');
     expect(out.characters.ember.xp).toBe(emberXp);   // the old character keeps its progress
     expect(levelOfCharacter(out, 'shade')).toBe(1);   // the new one does not inherit it
     expect(out.xp).toEqual(s.xp);                     // stats and quest unlocks stay shared
-    const next = reducer(out, { type: 'complete', date: '2026-11-09', questId: out.weeks[0].days[0].quests.find((x) => !x.done)!.questId });
+    const next = reducer(out, { type: 'complete', date: '2026-11-11', questId: out.weeks[0].days[0].quests.find((x) => !x.done)!.questId });
     expect(next.characters.shade.xp).toBeGreaterThan(0);
     expect(next.characters.ember.xp).toBe(emberXp);
   });

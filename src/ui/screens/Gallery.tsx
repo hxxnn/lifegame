@@ -11,7 +11,7 @@ export function Gallery({ state }: { state: PlayerState }) {
     <>
       <section className="surface">
         <h2>꾸미기 도감</h2>
-        {nextIdx >= 0 && <p className="muted">다음 해금까지 {milestoneThreshold(nextIdx + 1) - state.totalCleared}개 클리어 남았어요. 해금한 캐릭터는 월요일에 바꿀 수 있어요.</p>}
+        {nextIdx >= 0 && <p className="muted">다음 해금까지 {milestoneThreshold(nextIdx + 1) - state.totalCleared}개 클리어 남았어요. 해금한 캐릭터는 캐릭터 화면에서 언제든 고를 수 있어요.</p>}
         <ul className="unlock-list">
           {COSMETIC_SEQUENCE.map((id, i) => {
             const open = state.unlockedIds.includes(id);

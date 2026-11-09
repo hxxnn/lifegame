@@ -1,6 +1,7 @@
 import { CHARACTERS } from '../data/characters';
 import { COSMETIC_LABELS } from '../data/cosmetics';
 import { composeAvatar } from '../data/sprites';
+import { artUrl } from '../ui/artUrl';
 import { STAT_IDS, STAT_NAMES } from '../domain/types';
 import { decodeShare, encodeShare, type SharePayload } from './codec';
 
@@ -22,7 +23,16 @@ export function parseCompareHash(hash: string): SharePayload | null {
 const STAT_COLORS: Record<string, string> = { str: '#ef6351', agi: '#4cc9f0', int: '#9b8cff', spi: '#5fd3a5', luk: '#ffd166' };
 
 /** Draws a 600x340 share card on a canvas (browser only). */
-export function renderCardPng(p: SharePayload): Promise<Blob> {
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('IMAGE_FAILED'));
+    img.src = src;
+  });
+}
+
+export async function renderCardPng(p: SharePayload): Promise<Blob> {
   const canvas = document.createElement('canvas');
   canvas.width = 600;
   canvas.height = 340;
@@ -32,13 +42,19 @@ export function renderCardPng(p: SharePayload): Promise<Blob> {
   g.fillRect(0, 0, 600, 340);
   g.fillStyle = ch.palette[0];
   g.fillRect(0, 0, 600, 8);
-  const scale = 6;
-  const avatar = composeAvatar(ch.id, []);
-  g.fillStyle = ch.palette[1] + '40';
-  g.fillRect(22, 44, 16 * scale, 16 * scale);
-  for (const px of avatar.sprite) {
-    g.fillStyle = px.c;
-    g.fillRect(22 + px.x * scale, 44 + px.y * scale, scale, scale);
+  const art = ch.art ? await loadImage(artUrl(ch.art.portrait)).catch(() => null) : null;
+  if (art) {
+    g.fillStyle = '#f4ede1';
+    g.fillRect(22, 44, 96, 96);
+    g.drawImage(art, 22, 44, 96, 96);
+  } else {
+    const scale = 6;
+    g.fillStyle = ch.palette[1] + '40';
+    g.fillRect(22, 44, 16 * scale, 16 * scale);
+    for (const px of composeAvatar(ch.id, []).sprite) {
+      g.fillStyle = px.c;
+      g.fillRect(22 + px.x * scale, 44 + px.y * scale, scale, scale);
+    }
   }
   g.textAlign = 'left';
   g.font = '600 28px sans-serif';

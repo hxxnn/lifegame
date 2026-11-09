@@ -108,7 +108,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .week[open] summary { margin-bottom: 8px; }
 .week summary .icon, .row .icon { color: var(--ink-3); }
 .hero-compact { display: flex; align-items: center; gap: 16px; padding: 4px 0 16px; }
-.hero-compact svg { flex: none; }
+.hero-compact svg, .hero-compact img { flex: none; }
 .hero-compact h1 { margin: 0; }
 .quests { margin-bottom: 20px; }
 .stat { margin-bottom: 16px; }
@@ -186,3 +186,7 @@ details summary:focus-visible { border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* 일러스트 캐릭터: 원화의 종이색 바탕에 올려 어두운 옷도 어느 테마에서나 또렷하게 보인다 */
+.avatar-art { display: block; object-fit: cover; background: #f4ede1; }
+.char-full { display: block; width: auto; height: 224px; flex: none; }

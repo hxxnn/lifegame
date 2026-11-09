@@ -5,6 +5,7 @@ import { STAT_IDS, STAT_NAMES, type PlayerState, type StatId } from '../../domai
 import { CharacterAvatar } from '../components/CharacterAvatar';
 import { Icon } from '../components/Icons';
 import { History } from '../components/History';
+import { artUrl } from '../artUrl';
 import { StatBar } from '../components/StatBar';
 import { canChangeProfile, isCharacterUnlocked, type Action } from '../store';
 
@@ -19,7 +20,7 @@ export function Character({ state, todayKey, dispatch }: { state: PlayerState; t
   return (
     <>
       <section className="surface row">
-        <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} />
+        {current.art ? <img className="char-full" src={artUrl(current.art.full)} alt={`${current.name} 전신`} height={224} decoding="async" /> : <CharacterAvatar id={current.id} size={96} unlockedIds={state.unlockedIds} />}
         <div className="grow">
           <h1>{current.name}</h1>
           <p className="muted">{current.tagline}</p>

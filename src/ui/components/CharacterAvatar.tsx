@@ -1,5 +1,6 @@
 import { CHARACTERS } from '../../data/characters';
 import { composeAvatar, type Pixel } from '../../data/sprites';
+import { artUrl } from '../artUrl';
 
 /** 같은 줄에서 색이 같은 칸을 이어 붙여 사각형 수를 줄인다. */
 function runs(pixels: Pixel[]): { x: number; y: number; w: number; c: string }[] {
@@ -15,6 +16,10 @@ function runs(pixels: Pixel[]): { x: number; y: number; w: number; c: string }[]
 
 export function CharacterAvatar({ id, size = 96, unlockedIds = [] }: { id: string; size?: number; unlockedIds?: string[] }) {
   const c = CHARACTERS.find((x) => x.id === id) ?? CHARACTERS[0];
+  if (c.art) {
+    // 일러스트 캐릭터: 픽셀 장비와 배경은 겹치지 않는다
+    return <img className="avatar-art" src={artUrl(c.art.portrait)} alt={`${c.name} 캐릭터`} width={size} height={size} decoding="async" style={{ borderRadius: Math.round(size / 6) }} />;
+  }
   const a = composeAvatar(c.id, unlockedIds);
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label={`${c.name} 캐릭터`} style={{ borderRadius: Math.round(size / 6), display: 'block' }}>

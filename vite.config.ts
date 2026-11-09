@@ -9,6 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,webp,ico}'] },
       manifest: {
         name: '라이프 RPG',
         short_name: '라이프RPG',

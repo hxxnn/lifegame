@@ -232,3 +232,25 @@ test('two tabs stay in sync and an old-version tab cannot overwrite the save', a
   await expect(page.getByTestId('today-progress')).toHaveText('1/5');
   await other.close();
 });
+
+
+test('illustrated characters load as images, pixel ones stay vector', async ({ page }) => {
+  await page.clock.install({ time: WED });
+  await page.goto('/');
+  for (const name of ['에버', '카게', '루미']) {
+    const img = page.getByRole('img', { name: `${name} 캐릭터` });
+    await expect(img).toBeVisible();
+    await expect.poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  }
+  await page.getByText(/잠긴 캐릭터/).click();
+  await expect(page.locator('svg[aria-label="팡 캐릭터"]')).toHaveCount(1);
+  await page.getByLabel('닉네임').fill('철수');
+  await page.getByRole('button', { name: /카게/ }).click();
+  await page.getByRole('button', { name: /^힘/ }).click();
+  await page.getByRole('button', { name: /^지력/ }).click();
+  await page.getByRole('button', { name: '모험 시작하기' }).click();
+  await page.getByRole('button', { name: '캐릭터' }).click();
+  const full = page.getByRole('img', { name: '카게 전신' });
+  await expect(full).toBeVisible();
+  await expect.poll(() => full.evaluate((el) => (el as HTMLImageElement).naturalHeight)).toBeGreaterThan(300);
+});

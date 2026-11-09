@@ -15,6 +15,17 @@ npm run e2e        # 화면 흐름 테스트 (Playwright, 빌드 후 preview 서
 npm run build      # 프로덕션 빌드 (PWA 포함)
 ```
 
+### 로컬에서 E2E 실행하기
+
+처음 한 번만 브라우저를 받아 두면 됩니다.
+
+```bash
+npx playwright install chromium
+npm run e2e
+```
+
+미리 설치된 브라우저 경로가 있는 환경에서는 그 브라우저를 자동으로 씁니다.
+
 ## 조정하기
 
 - 밸런스(경험치, 확률, 퀘스트 개수, 보너스): `src/data/balance.ts`
